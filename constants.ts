@@ -29,12 +29,12 @@ export const PROJECTS: Project[] = [
 ];
 
 export const GIT_HISTORY: HistoryNode[] = [
-  { id: 'h1', label: 'INITIAL_COMMIT', type: 'commit', date: '2024-01-10', description: 'System instantiation.' },
-  { id: 'h2', label: 'FEATURE: RAW_WEBGL', type: 'commit', date: '2024-02-15', description: 'Implementing the visual core.' },
-  { id: 'h3', label: 'MERGE: PROTOTYPE_v2', type: 'merge', date: '2024-03-01', description: 'Merging experimental branches.' },
-  { id: 'h4', label: 'RELEASE: ALPHA_1', type: 'release', date: '2024-04-20', description: 'First public deployment.' },
-  { id: 'h5', label: 'FIX: MEMORY_LEAK', type: 'commit', date: '2024-05-12', description: 'Optimizing garbage collection.' },
-  { id: 'h6', label: 'FEATURE: AI_ORACLE', type: 'commit', date: '2024-06-05', description: 'Integration of Gemini intelligence.' }
+  { id: 'h1', label: 'INITIAL_COMMIT', type: 'commit', date: '2024-01-10', description: 'System instantiation.', author: 'enterk0d3' },
+  { id: 'h2', label: 'FEATURE: RAW_WEBGL', type: 'commit', date: '2024-02-15', description: 'Implementing the visual core.', author: 'enterk0d3' },
+  { id: 'h3', label: 'MERGE: PROTOTYPE_v2', type: 'merge', date: '2024-03-01', description: 'Merging experimental branches.', author: 'system_bot' },
+  { id: 'h4', label: 'RELEASE: ALPHA_1', type: 'release', date: '2024-04-20', description: 'First public deployment.', author: 'enterk0d3' },
+  { id: 'h5', label: 'FIX: MEMORY_LEAK', type: 'commit', date: '2024-05-12', description: 'Optimizing garbage collection.', author: 'enterk0d3' },
+  { id: 'h6', label: 'FEATURE: AI_ORACLE', type: 'commit', date: '2024-06-05', description: 'Integration of Gemini intelligence.', author: 'enterk0d3' }
 ];
 
 export const ASCII_LOGO = `

@@ -14,6 +14,7 @@ export interface HistoryNode {
   type: 'commit' | 'merge' | 'release';
   date: string;
   description: string;
+  author?: string;
 }
 
 export interface TerminalMessage {
