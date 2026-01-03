@@ -4,11 +4,23 @@ import { ASCII_LOGO } from './constants';
 import TerminalShell from './components/TerminalShell';
 import GitGraph from './components/GitGraph';
 import ProjectGrid from './components/ProjectGrid';
+import CommandPalette from './components/CommandPalette';
 
 const App: React.FC = () => {
+  const openCommandPalette = () => {
+    // Dispatch a CMD+K keyboard event manually to toggle the palette
+    window.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'k',
+      metaKey: true,
+      bubbles: true
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-white text-black p-4 md:p-8 lg:p-12 space-y-24 selection:bg-black selection:text-white overflow-x-hidden">
       
+      <CommandPalette />
+
       {/* Header / Hero */}
       <header className="relative flex flex-col items-start pt-12">
         <div className="absolute top-0 right-0 text-[8px] font-mono leading-tight opacity-20 pointer-events-none select-none">
@@ -37,7 +49,7 @@ const App: React.FC = () => {
       {/* Interactive Core Section */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-7 space-y-12">
-          <div className="border-8 border-black p-8 bg-zinc-100 brutal-shadow relative">
+          <div id="mission-section" className="border-8 border-black p-8 bg-zinc-100 brutal-shadow relative scroll-mt-24">
             <div className="absolute -top-6 -left-6 bg-black text-white p-2 text-xs font-bold brutal-shadow-sm">
               MISSION_STATEMENT
             </div>
@@ -45,10 +57,16 @@ const App: React.FC = () => {
               "CHAOS IS THE NATURAL STATE OF COMPUTATION. WE DON'T PREVENT IT; WE ARCHITECT IT INTO STRUCTURE. MINIMALISM ISN'T LESS; IT'S JUST THE NECESSARY."
             </p>
             <div className="mt-8 flex gap-4">
-              <button className="bg-black text-white px-6 py-3 font-bold hover:bg-white hover:text-black border-4 border-black transition-all brutal-shadow-sm active:translate-y-1">
-                ESTABLISH_CONNECTION
+              <button 
+                onClick={openCommandPalette}
+                className="bg-black text-white px-6 py-3 font-bold hover:bg-white hover:text-black border-4 border-black transition-all brutal-shadow-sm active:translate-y-1"
+              >
+                ESTABLISH_CONNECTION (Cmd+K)
               </button>
-              <button className="border-4 border-black px-6 py-3 font-bold hover:bg-black hover:text-white transition-all brutal-shadow-sm active:translate-y-1">
+              <button 
+                onClick={() => document.getElementById('terminal-section')?.scrollIntoView({ behavior: 'smooth' })}
+                className="border-4 border-black px-6 py-3 font-bold hover:bg-black hover:text-white transition-all brutal-shadow-sm active:translate-y-1"
+              >
                 READ_MANIFESTO
               </button>
             </div>
@@ -57,13 +75,13 @@ const App: React.FC = () => {
           <TerminalShell />
         </div>
 
-        <div className="lg:col-span-5">
+        <div id="git-section" className="lg:col-span-5 scroll-mt-24">
           <GitGraph />
         </div>
       </section>
 
       {/* Projects Section */}
-      <section>
+      <section id="projects-section" className="scroll-mt-24">
         <div className="flex items-end gap-6 mb-12">
           <h2 className="text-6xl md:text-8xl font-black italic leading-none tracking-tighter">PROJECTS</h2>
           <div className="flex-1 h-4 bg-black mb-4"></div>
@@ -77,9 +95,9 @@ const App: React.FC = () => {
         <div className="space-y-4">
           <h4 className="text-xl font-black underline italic">CONTACT_METHODS</h4>
           <ul className="space-y-1 font-mono text-sm font-bold">
-            <li className="hover:translate-x-2 transition-transform cursor-pointer">/github/enterk0d3</li>
-            <li className="hover:translate-x-2 transition-transform cursor-pointer">/twitter/enterk0d3</li>
-            <li className="hover:translate-x-2 transition-transform cursor-pointer">/email/system@enterk0d3.com</li>
+            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://github.com/enterk0d3', '_blank')}>/github/enterk0d3</li>
+            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://twitter.com/enterk0d3', '_blank')}>/twitter/enterk0d3</li>
+            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.location.href = 'mailto:system@enterk0d3.com'}>/email/system@enterk0d3.com</li>
           </ul>
         </div>
         <div className="space-y-4">

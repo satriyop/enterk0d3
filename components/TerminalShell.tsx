@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { TerminalMessage } from '../types';
 import { askOracle } from '../services/geminiService';
 
@@ -13,14 +13,14 @@ const TerminalShell: React.FC = () => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isThinking, setIsThinking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history]);
 
-  const handleCommand = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedInput = input.trim();
+  const executeCommand = useCallback(async (fullCommand: string) => {
+    const trimmedInput = fullCommand.trim();
     if (!trimmedInput) return;
 
     const cmd = trimmedInput.toLowerCase();
@@ -29,7 +29,7 @@ const TerminalShell: React.FC = () => {
     setCommandHistory(prev => [trimmedInput, ...prev.filter(c => c !== trimmedInput)].slice(0, 50));
     setHistoryIndex(-1);
 
-    const newHistory: TerminalMessage[] = [...history, { type: 'input', content: input }];
+    const newHistory: TerminalMessage[] = [...history, { type: 'input', content: trimmedInput }];
     setHistory(newHistory);
     setInput('');
 
@@ -92,6 +92,22 @@ Date:   Sun May 12 09:15:44 2024
     } else {
       setHistory(prev => [...prev, { type: 'error', content: `COMMAND NOT FOUND: ${cmd}` }]);
     }
+  }, [history]);
+
+  // Listen for external command events (e.g., from Command Palette)
+  useEffect(() => {
+    const handleExternalCmd = (e: any) => {
+      if (e.detail) {
+        executeCommand(e.detail);
+      }
+    };
+    window.addEventListener('TERMINAL_CMD', handleExternalCmd);
+    return () => window.removeEventListener('TERMINAL_CMD', handleExternalCmd);
+  }, [executeCommand]);
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    executeCommand(input);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -115,8 +131,16 @@ Date:   Sun May 12 09:15:44 2024
     }
   };
 
+  const focusInput = () => {
+    inputRef.current?.focus();
+  };
+
   return (
-    <div className="bg-black text-white p-6 border-4 border-black font-mono brutal-shadow h-[400px] overflow-hidden flex flex-col">
+    <div 
+      id="terminal-section"
+      className="bg-black text-white p-6 border-4 border-black font-mono brutal-shadow h-[400px] overflow-hidden flex flex-col cursor-text scroll-mt-24"
+      onClick={focusInput}
+    >
       <div className="flex justify-between items-center mb-4 border-b border-white/20 pb-2">
         <span className="text-xs uppercase font-bold tracking-widest">System_Terminal_v4.0.1</span>
         <div className="flex gap-2">
@@ -125,7 +149,7 @@ Date:   Sun May 12 09:15:44 2024
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto mb-4 space-y-1">
+      <div className="flex-1 overflow-y-auto mb-4 space-y-1 scrollbar-hide">
         {history.map((msg, i) => (
           <div key={i} className={`text-sm whitespace-pre-wrap ${
             msg.type === 'error' ? 'text-red-500' : 
@@ -143,17 +167,39 @@ Date:   Sun May 12 09:15:44 2024
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={handleCommand} className="flex gap-2 border-t border-white/20 pt-4">
+      <form onSubmit={handleFormSubmit} className="flex gap-2 border-t border-white/20 pt-4 relative">
         <span className="text-green-400 font-bold">$</span>
-        <input 
-          type="text" 
-          value={input} 
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="bg-transparent border-none outline-none text-white flex-1 font-mono text-sm"
-          autoFocus
-        />
+        <div className="flex-1 relative font-mono text-sm flex items-center">
+          <span className="whitespace-pre">{input}</span>
+          <span className="w-2.5 h-4 bg-white ml-0.5 animate-cursor-blink"></span>
+          <input 
+            ref={inputRef}
+            type="text" 
+            value={input} 
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="absolute inset-0 w-full bg-transparent border-none outline-none text-transparent caret-transparent font-mono text-sm selection:bg-white/20"
+            autoFocus
+          />
+        </div>
       </form>
+
+      <style>{`
+        @keyframes cursor-blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        .animate-cursor-blink {
+          animation: cursor-blink 0.8s step-end infinite;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 };

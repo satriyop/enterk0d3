@@ -6,6 +6,7 @@ export interface Project {
   tags: string[];
   repo: string;
   commitHash: string;
+  previewUrl?: string;
 }
 
 export interface HistoryNode {

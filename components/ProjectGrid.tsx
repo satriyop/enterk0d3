@@ -1,10 +1,13 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { PROJECTS } from '../constants';
 import { marked } from 'marked';
+import { Project } from '../types';
 
 const ProjectGrid: React.FC = () => {
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [hoveredProject, setHoveredProject] = useState<Project | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Extract all unique tags from projects
   const allTags = useMemo(() => {
@@ -21,8 +24,12 @@ const ProjectGrid: React.FC = () => {
     return PROJECTS.filter(project => project.tags.includes(activeTag));
   }, [activeTag]);
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  };
+
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 relative" onMouseMove={handleMouseMove}>
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-4 border-b-4 border-black pb-8">
         <span className="text-xs font-black uppercase font-mono bg-black text-white px-2 py-1">FILTER_BY:</span>
@@ -71,6 +78,8 @@ const ProjectGrid: React.FC = () => {
             <div 
               key={project.id} 
               onClick={handleCardClick}
+              onMouseEnter={() => setHoveredProject(project)}
+              onMouseLeave={() => setHoveredProject(null)}
               className="border-4 border-black bg-white p-6 brutal-shadow group hover:-translate-y-2 hover:-translate-x-2 transition-transform cursor-pointer relative overflow-hidden flex flex-col"
             >
               {/* Glitch Overlay Effect */}
@@ -118,6 +127,32 @@ const ProjectGrid: React.FC = () => {
         })}
       </div>
 
+      {/* Floating Preview Tooltip */}
+      {hoveredProject && hoveredProject.previewUrl && (
+        <div 
+          className="fixed z-[200] pointer-events-none border-4 border-black bg-white brutal-shadow-sm overflow-hidden animate-preview-in"
+          style={{ 
+            left: mousePos.x + 20, 
+            top: mousePos.y + 20,
+            width: '240px',
+            height: '180px'
+          }}
+        >
+          <div className="absolute top-0 left-0 bg-black text-white text-[8px] font-black px-1 z-10 uppercase tracking-tighter">
+            NODE_PREVIEW // {hoveredProject.title}
+          </div>
+          <img 
+            src={hoveredProject.previewUrl} 
+            alt={hoveredProject.title} 
+            className="w-full h-full object-cover grayscale brightness-75 contrast-125"
+          />
+          <div className="absolute bottom-0 right-0 bg-white border-t-2 border-l-2 border-black text-[8px] font-black px-1 z-10 uppercase">
+            {hoveredProject.commitHash}
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none"></div>
+        </div>
+      )}
+
       {filteredProjects.length === 0 && (
         <div className="border-4 border-dashed border-black p-12 text-center bg-zinc-50">
           <p className="text-4xl font-black italic opacity-20 uppercase">NO_NODES_FOUND_FOR_TAG: {activeTag}</p>
@@ -129,6 +164,16 @@ const ProjectGrid: React.FC = () => {
           </button>
         </div>
       )}
+
+      <style>{`
+        @keyframes preview-in {
+          from { opacity: 0; transform: scale(0.9) rotate(-2deg); }
+          to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        .animate-preview-in {
+          animation: preview-in 0.15s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+      `}</style>
     </div>
   );
 };

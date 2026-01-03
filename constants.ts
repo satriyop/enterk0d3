@@ -8,7 +8,8 @@ export const PROJECTS: Project[] = [
     description: 'High-performance rendering pipeline for **brutalist interfaces**. Built with `raw webgl` and zero dependencies. Features include:\n* Linear Algebra Core\n* Custom Shader Hot-Reload\n* Zero-Alloc Buffer Management',
     tags: ['WebGL', 'TS', 'Low-Level'],
     repo: 'github.com/enterk0d3/void-engine',
-    commitHash: 'a1b2c3d'
+    commitHash: 'a1b2c3d',
+    previewUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=400&h=300&auto=format&fit=crop&sat=-100'
   },
   {
     id: '2',
@@ -16,7 +17,8 @@ export const PROJECTS: Project[] = [
     description: 'A custom shell environment that predicts your next command using **local LLM integration**. *Stop typing repetitive boilerplates.*',
     tags: ['Rust', 'AI', 'CLI'],
     repo: 'github.com/enterk0d3/neural-shell',
-    commitHash: 'f4e5d6c'
+    commitHash: 'f4e5d6c',
+    previewUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&h=300&auto=format&fit=crop&sat=-100'
   },
   {
     id: '3',
@@ -24,7 +26,8 @@ export const PROJECTS: Project[] = [
     description: 'Decentralized identity layer for the dark web, ensuring **perfect anonymity**. Uses `zk-SNARKs` for zero-knowledge verification.',
     tags: ['Blockchain', 'P2P', 'Security'],
     repo: 'github.com/enterk0d3/ghost-protocol',
-    commitHash: '9z8y7x6'
+    commitHash: '9z8y7x6',
+    previewUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc48?q=80&w=400&h=300&auto=format&fit=crop&sat=-100'
   }
 ];
 
