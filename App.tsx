@@ -12,6 +12,7 @@ import { fetchUserRepos, fetchLatestCommitHash, fetchRepoCommits } from './servi
 const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(FALLBACK_PROJECTS);
   const [activeProject, setActiveProject] = useState<Project>(FALLBACK_PROJECTS[0]);
+  const [previewProject, setPreviewProject] = useState<Project | null>(null);
   const [isSyncing, setIsSyncing] = useState(true);
 
   const syncGitHub = async () => {
@@ -19,7 +20,6 @@ const App: React.FC = () => {
     const repos = await fetchUserRepos('satriyop');
     
     if (repos && repos.length > 0) {
-      // Filter out forks and only take the 5 most recently updated projects
       const mappedProjects: Project[] = repos
         .filter((repo: any) => !repo.fork)
         .slice(0, 5)
@@ -35,17 +35,26 @@ const App: React.FC = () => {
       
       setProjects(mappedProjects);
       
+      // Pre-fetch data for the first few to make the UI snappy
       if (mappedProjects.length > 0) {
-        // Fetch initial data for the first project
-        const firstRepoPath = `satriyop/${mappedProjects[0].title.toLowerCase()}`;
-        const [hash, history] = await Promise.all([
-          fetchLatestCommitHash(firstRepoPath),
-          fetchRepoCommits(firstRepoPath)
-        ]);
-        
-        const firstProjectWithData = { ...mappedProjects[0], commitHash: hash, history };
+        const fetchInitialData = async (proj: Project) => {
+          const repoPath = proj.repo.replace('github.com/', '');
+          const [hash, history] = await Promise.all([
+            fetchLatestCommitHash(repoPath),
+            fetchRepoCommits(repoPath)
+          ]);
+          return { ...proj, commitHash: hash, history };
+        };
+
+        const firstProjectWithData = await fetchInitialData(mappedProjects[0]);
         setActiveProject(firstProjectWithData);
         setProjects(prev => prev.map(p => p.id === mappedProjects[0].id ? firstProjectWithData : p));
+
+        // Background fetch for the rest to enable instant hover Git Flow
+        mappedProjects.slice(1).forEach(async (p) => {
+          const data = await fetchInitialData(p);
+          setProjects(prev => prev.map(item => item.id === p.id ? data : item));
+        });
       }
     }
     setIsSyncing(false);
@@ -56,7 +65,6 @@ const App: React.FC = () => {
   }, []);
 
   const handleProjectSelect = async (project: Project) => {
-    // If we haven't fetched history for this project yet, fetch it
     if (!project.history || project.commitHash === 'FETCHING...') {
       const repoPath = project.repo.replace('github.com/', '');
       const [hash, history] = await Promise.all([
@@ -69,6 +77,10 @@ const App: React.FC = () => {
     } else {
       setActiveProject(project);
     }
+  };
+
+  const handleProjectHover = (project: Project | null) => {
+    setPreviewProject(project);
   };
 
   const openCommandPalette = () => {
@@ -125,7 +137,7 @@ const App: React.FC = () => {
               MISSION_STATEMENT
             </div>
             <p className="text-2xl md:text-3xl font-black leading-tight italic">
-              "CHAOS IS THE NATURAL STATE OF COMPUTATION. WE DON'T PREVENT IT; WE ARCHITECT IT INTO STRUCTURE. MINIMALISM ISN'T LESS; IT'S JUST THE NECESSARY."
+              "CHAOS IS THE NATURAL STATE OF COMPUTATION. WE DON'T PREVENT IT; WE ARCHITECT IT INTO STRUCTURE."
             </p>
             <div className="mt-8 flex gap-4">
               <button 
@@ -134,31 +146,27 @@ const App: React.FC = () => {
               >
                 ESTABLISH_CONNECTION (Cmd+K)
               </button>
-              <button 
-                onClick={() => document.getElementById('terminal-section')?.scrollIntoView({ behavior: 'smooth' })}
-                className="border-4 border-black px-6 py-3 font-bold hover:bg-black hover:text-white transition-all brutal-shadow-sm active:translate-y-1"
-              >
-                READ_MANIFESTO
-              </button>
             </div>
           </div>
 
           <TerminalShell activeProject={activeProject} allProjects={projects} />
+
+          <div id="projects-section" className="scroll-mt-24 space-y-8">
+            <div className="flex items-end gap-4">
+              <h2 className="text-4xl font-black italic leading-none tracking-tighter">PROJECT_BROWSER</h2>
+              <div className="flex-1 h-2 bg-black mb-1"></div>
+            </div>
+            <ProjectGrid 
+              projects={projects} 
+              onProjectSelect={handleProjectSelect} 
+              onProjectHover={handleProjectHover}
+            />
+          </div>
         </div>
 
-        <div id="git-section" className="lg:col-span-5 scroll-mt-24">
-          <GitGraph activeProject={activeProject} />
+        <div id="git-section" className="lg:col-span-5 lg:sticky lg:top-12 scroll-mt-24">
+          <GitGraph activeProject={previewProject || activeProject} />
         </div>
-      </section>
-
-      {/* Projects Section */}
-      <section id="projects-section" className="scroll-mt-24">
-        <div className="flex items-end gap-6 mb-12">
-          <h2 className="text-6xl md:text-8xl font-black italic leading-none tracking-tighter">PROJECTS</h2>
-          <div className="flex-1 h-4 bg-black mb-4"></div>
-          <span className="text-xs font-mono font-bold mb-4">LATEST_5_ACTIVE_NODES</span>
-        </div>
-        <ProjectGrid projects={projects} onProjectSelect={handleProjectSelect} />
       </section>
 
       {/* Activity Section */}
@@ -210,10 +218,6 @@ const App: React.FC = () => {
                     <span className="font-bold">99.982%</span>
                   </div>
                   <div className="flex justify-between border-b border-black/10">
-                    <span>COMMITS_SYNCED:</span>
-                    <span className="font-bold">TOTAL_VERIFIED</span>
-                  </div>
-                  <div className="flex justify-between border-b border-black/10">
                     <span>NODE_STATUS:</span>
                     <span className="text-green-600 font-bold">STABLE</span>
                   </div>
@@ -232,8 +236,6 @@ const App: React.FC = () => {
               </div>
             </div>
           </div>
-
-          <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-[0.03] transition-opacity bg-[url('https://media.giphy.com/media/oEI9uWUicG79C/giphy.gif')] mix-blend-multiply"></div>
         </div>
       </section>
 
@@ -243,8 +245,8 @@ const App: React.FC = () => {
           <h4 className="text-xl font-black underline italic">CONTACT_METHODS</h4>
           <ul className="space-y-1 font-mono text-sm font-bold">
             <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://github.com/satriyop', '_blank')}>/github/satriyop</li>
-            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://twitter.com/enterk0d3', '_blank')}>/twitter/enterk0d3</li>
-            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.location.href = 'mailto:system@enterk0d3.com'}>/email/system@enterk0d3.com</li>
+            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://twitter.com/satriyop', '_blank')}>/twitter/satriyop</li>
+            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.location.href = 'mailto:satriyo@enterk0d3.com'}>/email/satriyo@enterk0d3.com</li>
           </ul>
         </div>
         <div className="space-y-4">
