@@ -1,37 +1,57 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Project } from '../types';
 
 interface Command {
   id: string;
   label: string;
   shortcut?: string;
   action: () => void;
-  category: 'NAVIGATION' | 'SYSTEM' | 'SOCIAL';
+  category: 'NAVIGATION' | 'SYSTEM' | 'SOCIAL' | 'PROJECTS';
 }
 
-const CommandPalette: React.FC = () => {
+interface CommandPaletteProps {
+  projects?: Project[];
+  onProjectSelect?: (project: Project) => void;
+}
+
+const CommandPalette: React.FC<CommandPaletteProps> = ({ projects = [], onProjectSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const commands: Command[] = [
+  const baseCommands: Command[] = [
     { id: 'nav-projects', label: 'Go to Projects', shortcut: 'G P', category: 'NAVIGATION', action: () => document.getElementById('projects-section')?.scrollIntoView({ behavior: 'smooth' }) },
     { id: 'nav-git', label: 'Go to Git Flow', shortcut: 'G G', category: 'NAVIGATION', action: () => document.getElementById('git-section')?.scrollIntoView({ behavior: 'smooth' }) },
     { id: 'nav-terminal', label: 'Go to Terminal', shortcut: 'G T', category: 'NAVIGATION', action: () => document.getElementById('terminal-section')?.scrollIntoView({ behavior: 'smooth' }) },
     { id: 'sys-clear', label: 'Terminal: Clear History', category: 'SYSTEM', action: () => window.dispatchEvent(new CustomEvent('TERMINAL_CMD', { detail: 'clear' })) },
     { id: 'sys-whoami', label: 'Terminal: Run Whoami', category: 'SYSTEM', action: () => window.dispatchEvent(new CustomEvent('TERMINAL_CMD', { detail: 'whoami' })) },
-    { id: 'soc-github', label: 'Contact: GitHub', shortcut: 'C G', category: 'SOCIAL', action: () => window.open('https://github.com/enterk0d3', '_blank') },
+    { id: 'soc-github', label: 'Contact: GitHub', shortcut: 'C G', category: 'SOCIAL', action: () => window.open('https://github.com/satriyop', '_blank') },
     { id: 'soc-email', label: 'Contact: Email', category: 'SOCIAL', action: () => window.location.href = 'mailto:system@enterk0d3.com' },
   ];
 
+  const projectCommands: Command[] = useMemo(() => {
+    return projects.map(p => ({
+      id: `proj-${p.id}`,
+      label: `Switch to: ${p.title}`,
+      category: 'PROJECTS' as const,
+      action: () => {
+        if (onProjectSelect) onProjectSelect(p);
+        document.getElementById('git-section')?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }));
+  }, [projects, onProjectSelect]);
+
+  const allCommands = useMemo(() => [...baseCommands, ...projectCommands], [baseCommands, projectCommands]);
+
   const filteredCommands = useMemo(() => {
-    return commands.filter(cmd => 
+    return allCommands.filter(cmd => 
       cmd.label.toLowerCase().includes(search.toLowerCase()) || 
       cmd.category.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search]);
+  }, [search, allCommands]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -95,7 +115,7 @@ const CommandPalette: React.FC = () => {
         </div>
 
         {/* Command List */}
-        <div ref={listRef} className="overflow-y-auto flex-1 p-2 space-y-1">
+        <div ref={listRef} className="overflow-y-auto flex-1 p-2 space-y-1 scrollbar-brutal">
           {filteredCommands.length > 0 ? (
             filteredCommands.map((cmd, index) => (
               <div
@@ -110,7 +130,7 @@ const CommandPalette: React.FC = () => {
                 onMouseEnter={() => setSelectedIndex(index)}
               >
                 <div className="flex items-center gap-4">
-                  <span className={`text-[8px] font-mono px-1 border ${index === selectedIndex ? 'border-white text-white' : 'border-black text-black'}`}>
+                  <span className={`text-[8px] font-mono px-1 border min-w-[60px] text-center ${index === selectedIndex ? 'border-white text-white' : 'border-black text-black'}`}>
                     {cmd.category}
                   </span>
                   <span className="font-black text-sm uppercase">{cmd.label}</span>
@@ -135,7 +155,7 @@ const CommandPalette: React.FC = () => {
             <span>↑↓ Navigate</span>
             <span>↵ Execute</span>
           </div>
-          <span className="text-[9px] font-mono opacity-40">SYSTEM_ROOT@COMMAND_CENTER</span>
+          <span className="text-[9px] font-mono opacity-40 uppercase">USER: SATRIYOP @ CMD_CTR</span>
         </div>
       </div>
 

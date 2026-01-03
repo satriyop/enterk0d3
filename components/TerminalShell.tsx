@@ -6,9 +6,10 @@ import { fetchRepoContents, fetchFileContent } from '../services/githubService';
 
 interface TerminalShellProps {
   activeProject?: Project;
+  allProjects?: Project[];
 }
 
-const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject }) => {
+const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject, allProjects = [] }) => {
   const [history, setHistory] = useState<TerminalMessage[]>([
     { type: 'system', content: 'SYSTEM_BOOT_COMPLETE' },
     { type: 'system', content: 'TYPE "help" FOR COMMANDS' }
@@ -70,9 +71,9 @@ const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject }) => {
         const target = args[0];
         if (!target || target === '.') break;
         if (target === '..') {
-          const parts = currentPath.split('/').filter(Boolean);
-          parts.pop();
-          setCurrentPath(parts.join('/'));
+          const pathParts = currentPath.split('/').filter(Boolean);
+          pathParts.pop();
+          setCurrentPath(pathParts.join('/'));
         } else {
           setCurrentPath(prev => (prev ? `${prev}/${target}` : target));
         }
@@ -107,7 +108,8 @@ const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject }) => {
         setHistory(prev => [...prev, { type: 'output', content: `ORACLE > ${answer}` }]);
         break;
       case 'projects':
-        setHistory(prev => [...prev, { type: 'output', content: 'FETCHING REPOS... [VOID_ENGINE, NEURAL_SHELL, GHOST_PROTOCOL]' }]);
+        const projectList = allProjects.map(p => p.title).join(', ');
+        setHistory(prev => [...prev, { type: 'output', content: `FETCHING REPOS FROM GITHUB... [${projectList}]` }]);
         break;
       case 'git':
         if (args[0] === 'status') {
@@ -119,7 +121,7 @@ const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject }) => {
       default:
         setHistory(prev => [...prev, { type: 'error', content: `COMMAND NOT FOUND: ${cmd}` }]);
     }
-  }, [history, activeProject, currentPath]);
+  }, [history, activeProject, allProjects, currentPath]);
 
   useEffect(() => {
     const handleExternalCmd = (e: any) => {

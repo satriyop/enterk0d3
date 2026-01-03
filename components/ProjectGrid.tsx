@@ -1,14 +1,14 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { PROJECTS } from '../constants';
 import { marked } from 'marked';
 import { Project } from '../types';
 
 interface ProjectGridProps {
+  projects: Project[];
   onProjectSelect?: (project: Project) => void;
 }
 
-const ProjectGrid: React.FC<ProjectGridProps> = ({ onProjectSelect }) => {
+const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect }) => {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [hoveredProject, setHoveredProject] = useState<Project | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -18,16 +18,16 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ onProjectSelect }) => {
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
-    PROJECTS.forEach(project => {
+    projects.forEach(project => {
       project.tags.forEach(tag => tags.add(tag));
     });
     return Array.from(tags).sort();
-  }, []);
+  }, [projects]);
 
   const filteredProjects = useMemo(() => {
-    if (!activeTag) return PROJECTS;
-    return PROJECTS.filter(project => project.tags.includes(activeTag));
-  }, [activeTag]);
+    if (!activeTag) return projects;
+    return projects.filter(project => project.tags.includes(activeTag));
+  }, [activeTag, projects]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
@@ -111,13 +111,13 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ onProjectSelect }) => {
               onClick={() => handleCardClick(project)}
               onMouseEnter={() => setHoveredProject(project)}
               onMouseLeave={() => setHoveredProject(null)}
-              className="border-4 border-black bg-white p-6 brutal-shadow group hover:-translate-y-2 hover:-translate-x-2 transition-transform cursor-pointer relative overflow-hidden flex flex-col"
+              className="border-4 border-black bg-white p-6 brutal-shadow group hover:-translate-y-2 hover:-translate-x-2 transition-transform cursor-pointer relative overflow-hidden flex flex-col min-h-[320px]"
             >
               <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none"></div>
               
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-2xl font-black italic break-words">{project.title}</h3>
-                <span className="text-[10px] font-mono bg-zinc-200 px-2 py-1 border border-black">#{project.commitHash}</span>
+                <span className="text-[10px] font-mono bg-zinc-200 px-2 py-1 border border-black truncate ml-2">#{project.id}</span>
               </div>
               
               <div 

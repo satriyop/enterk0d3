@@ -1,15 +1,75 @@
 
-import React, { useState } from 'react';
-import { ASCII_LOGO, PROJECTS } from './constants';
+import React, { useState, useEffect } from 'react';
+import { ASCII_LOGO, PROJECTS as FALLBACK_PROJECTS } from './constants';
 import TerminalShell from './components/TerminalShell';
 import GitGraph from './components/GitGraph';
 import ProjectGrid from './components/ProjectGrid';
 import CommandPalette from './components/CommandPalette';
 import HeartbeatTicker from './components/HeartbeatTicker';
 import { Project } from './types';
+import { fetchUserRepos, fetchLatestCommitHash, fetchRepoCommits } from './services/githubService';
 
 const App: React.FC = () => {
-  const [activeProject, setActiveProject] = useState<Project>(PROJECTS[0]);
+  const [projects, setProjects] = useState<Project[]>(FALLBACK_PROJECTS);
+  const [activeProject, setActiveProject] = useState<Project>(FALLBACK_PROJECTS[0]);
+  const [isSyncing, setIsSyncing] = useState(true);
+
+  const syncGitHub = async () => {
+    setIsSyncing(true);
+    const repos = await fetchUserRepos('satriyop');
+    
+    if (repos && repos.length > 0) {
+      // Filter out forks and only take the 5 most recently updated projects
+      const mappedProjects: Project[] = repos
+        .filter((repo: any) => !repo.fork)
+        .slice(0, 5)
+        .map((repo: any) => ({
+          id: repo.id.toString(),
+          title: repo.name.toUpperCase(),
+          description: repo.description || "NO_DESCRIPTION_PROVIDED",
+          tags: repo.topics && repo.topics.length > 0 ? repo.topics : (repo.language ? [repo.language] : []),
+          repo: repo.html_url.replace('https://', ''),
+          commitHash: 'FETCHING...', 
+          previewUrl: `https://opengraph.githubassets.com/1/satriyop/${repo.name}`
+        }));
+      
+      setProjects(mappedProjects);
+      
+      if (mappedProjects.length > 0) {
+        // Fetch initial data for the first project
+        const firstRepoPath = `satriyop/${mappedProjects[0].title.toLowerCase()}`;
+        const [hash, history] = await Promise.all([
+          fetchLatestCommitHash(firstRepoPath),
+          fetchRepoCommits(firstRepoPath)
+        ]);
+        
+        const firstProjectWithData = { ...mappedProjects[0], commitHash: hash, history };
+        setActiveProject(firstProjectWithData);
+        setProjects(prev => prev.map(p => p.id === mappedProjects[0].id ? firstProjectWithData : p));
+      }
+    }
+    setIsSyncing(false);
+  };
+
+  useEffect(() => {
+    syncGitHub();
+  }, []);
+
+  const handleProjectSelect = async (project: Project) => {
+    // If we haven't fetched history for this project yet, fetch it
+    if (!project.history || project.commitHash === 'FETCHING...') {
+      const repoPath = project.repo.replace('github.com/', '');
+      const [hash, history] = await Promise.all([
+        fetchLatestCommitHash(repoPath),
+        fetchRepoCommits(repoPath)
+      ]);
+      const updatedProject = { ...project, commitHash: hash, history };
+      setActiveProject(updatedProject);
+      setProjects(prev => prev.map(p => p.id === project.id ? updatedProject : p));
+    } else {
+      setActiveProject(project);
+    }
+  };
 
   const openCommandPalette = () => {
     window.dispatchEvent(new KeyboardEvent('keydown', {
@@ -22,7 +82,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white text-black p-4 md:p-8 lg:p-12 pb-24 space-y-24 selection:bg-black selection:text-white overflow-x-hidden">
       
-      <CommandPalette />
+      <CommandPalette projects={projects} onProjectSelect={handleProjectSelect} />
       <HeartbeatTicker />
 
       {/* Header / Hero */}
@@ -38,9 +98,16 @@ const App: React.FC = () => {
         </pre>
 
         <div className="space-y-2 max-w-4xl">
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-none">
-            ENTERK0D3
-          </h1>
+          <div className="flex items-center gap-4">
+             <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-none">
+              ENTERK0D3
+            </h1>
+            {isSyncing && (
+              <div className="bg-black text-white text-[10px] font-mono px-2 py-1 animate-pulse mb-auto mt-2">
+                SYNCING_GITHUB_API...
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <div className="h-4 w-12 bg-black animate-pulse"></div>
             <p className="text-xl md:text-2xl font-bold border-l-8 border-black pl-4">
@@ -76,7 +143,7 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <TerminalShell activeProject={activeProject} />
+          <TerminalShell activeProject={activeProject} allProjects={projects} />
         </div>
 
         <div id="git-section" className="lg:col-span-5 scroll-mt-24">
@@ -89,9 +156,9 @@ const App: React.FC = () => {
         <div className="flex items-end gap-6 mb-12">
           <h2 className="text-6xl md:text-8xl font-black italic leading-none tracking-tighter">PROJECTS</h2>
           <div className="flex-1 h-4 bg-black mb-4"></div>
-          <span className="text-xs font-mono font-bold mb-4">ROOT/SRC/BIN/*</span>
+          <span className="text-xs font-mono font-bold mb-4">LATEST_5_ACTIVE_NODES</span>
         </div>
-        <ProjectGrid onProjectSelect={setActiveProject} />
+        <ProjectGrid projects={projects} onProjectSelect={handleProjectSelect} />
       </section>
 
       {/* Activity Section */}
