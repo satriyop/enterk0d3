@@ -1,14 +1,20 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { TerminalMessage } from '../types';
+import { TerminalMessage, GitHubContent, Project } from '../types';
 import { askOracle } from '../services/geminiService';
+import { fetchRepoContents, fetchFileContent } from '../services/githubService';
 
-const TerminalShell: React.FC = () => {
+interface TerminalShellProps {
+  activeProject?: Project;
+}
+
+const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject }) => {
   const [history, setHistory] = useState<TerminalMessage[]>([
     { type: 'system', content: 'SYSTEM_BOOT_COMPLETE' },
     { type: 'system', content: 'TYPE "help" FOR COMMANDS' }
   ]);
   const [input, setInput] = useState('');
+  const [currentPath, setCurrentPath] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isThinking, setIsThinking] = useState(false);
@@ -23,83 +29,101 @@ const TerminalShell: React.FC = () => {
     const trimmedInput = fullCommand.trim();
     if (!trimmedInput) return;
 
-    const cmd = trimmedInput.toLowerCase();
+    const parts = trimmedInput.split(' ');
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
     
-    // Update command history for arrow navigation
     setCommandHistory(prev => [trimmedInput, ...prev.filter(c => c !== trimmedInput)].slice(0, 50));
     setHistoryIndex(-1);
 
-    const newHistory: TerminalMessage[] = [...history, { type: 'input', content: trimmedInput }];
-    setHistory(newHistory);
+    setHistory(prev => [...prev, { type: 'input', content: trimmedInput }]);
     setInput('');
 
-    if (cmd === 'help') {
-      setHistory(prev => [...prev, { type: 'output', content: 'AVAILABLE COMMANDS: [whoami, projects, git, oracle <query>, clear]' }]);
-    } else if (cmd === 'clear') {
-      setHistory([]);
-    } else if (cmd === 'whoami') {
-      setHistory(prev => [...prev, { type: 'output', content: 'USER: enterk0d3 | STATUS: ARCHITECT | LOC: NULL_SPACE' }]);
-    } else if (cmd.startsWith('oracle ')) {
-      const query = cmd.replace('oracle ', '');
-      setIsThinking(true);
-      const answer = await askOracle(query);
-      setIsThinking(false);
-      setHistory(prev => [...prev, { type: 'output', content: `ORACLE > ${answer}` }]);
-    } else if (cmd === 'projects') {
-      setHistory(prev => [...prev, { type: 'output', content: 'FETCHING REPOS... [VOID_ENGINE, NEURAL_SHELL, GHOST_PROTOCOL]' }]);
-    } else if (cmd === 'git') {
-      setHistory(prev => [...prev, { type: 'output', content: 'usage: git <command> [<args>]\n\nSupported commands: status, log, branch' }]);
-    } else if (cmd === 'git status') {
-      setHistory(prev => [...prev, { 
-        type: 'output', 
-        content: 'On branch core\nYour branch is up to date with \'origin/core\'.\n\nnothing to commit, working tree clean' 
-      }]);
-    } else if (cmd === 'git log') {
-      const gitLogContent = `commit a1b2c3d (HEAD -> core)
-Author: enterk0d3 <system@enterk0d3.com>
-Date:   Wed Jun 5 14:32:10 2024
+    const repoPath = activeProject?.repo.replace('github.com/', '');
 
-    FEATURE: AI_ORACLE integration
-
-commit f4e5d6c
-Author: enterk0d3 <system@enterk0d3.com>
-Date:   Sun May 12 09:15:44 2024
-
-    FIX: memory leak optimization
-
---- VISUAL_GRAPH ---
-*  [a1b2c3d] (HEAD -> core) FEATURE: AI_ORACLE
-|
-*  [f4e5d6c] FIX: memory leak
-|
-*  [9z8y7x6] RELEASE: ALPHA_1
-|\\
-| * [h3_sub] MERGE: PROTOTYPE_v2
-|/
-*  [h2_root] FEATURE: RAW_WEBGL
-|
-*  [h1_init] INITIAL_COMMIT`;
-
-      setHistory(prev => [...prev, { 
-        type: 'output', 
-        content: gitLogContent
-      }]);
-    } else if (cmd === 'git branch') {
-      setHistory(prev => [...prev, { 
-        type: 'output', 
-        content: '* core\n  experimental-gl\n  ghost-protocol-fix\n  chaos-theory-v2' 
-      }]);
-    } else {
-      setHistory(prev => [...prev, { type: 'error', content: `COMMAND NOT FOUND: ${cmd}` }]);
+    switch (cmd) {
+      case 'help':
+        setHistory(prev => [...prev, { type: 'output', content: 'AVAILABLE COMMANDS: [ls, cd <dir>, cat <file>, whoami, projects, git, oracle <query>, clear]' }]);
+        break;
+      case 'clear':
+        setHistory([]);
+        break;
+      case 'whoami':
+        setHistory(prev => [...prev, { type: 'output', content: 'USER: satriyop | STATUS: ARCHITECT | NODE: ' + (activeProject?.title || 'GLOBAL') }]);
+        break;
+      case 'ls':
+        if (!repoPath) {
+          setHistory(prev => [...prev, { type: 'error', content: 'SYSTEM_ERROR: NO_PROJECT_ACTIVE' }]);
+          return;
+        }
+        setIsThinking(true);
+        const contents = await fetchRepoContents(repoPath, currentPath);
+        setIsThinking(false);
+        const listStr = contents.map(c => `${c.type === 'dir' ? '[DIR]' : '     '} ${c.name}`).join('\n');
+        setHistory(prev => [...prev, { type: 'output', content: listStr || 'DIRECTORY_EMPTY' }]);
+        break;
+      case 'cd':
+        if (!repoPath) {
+          setHistory(prev => [...prev, { type: 'error', content: 'SYSTEM_ERROR: NO_PROJECT_ACTIVE' }]);
+          return;
+        }
+        const target = args[0];
+        if (!target || target === '.') break;
+        if (target === '..') {
+          const parts = currentPath.split('/').filter(Boolean);
+          parts.pop();
+          setCurrentPath(parts.join('/'));
+        } else {
+          setCurrentPath(prev => (prev ? `${prev}/${target}` : target));
+        }
+        break;
+      case 'cat':
+        if (!repoPath) {
+          setHistory(prev => [...prev, { type: 'error', content: 'SYSTEM_ERROR: NO_PROJECT_ACTIVE' }]);
+          return;
+        }
+        const file = args[0];
+        if (!file) {
+          setHistory(prev => [...prev, { type: 'error', content: 'USAGE: cat <filename>' }]);
+          break;
+        }
+        setIsThinking(true);
+        const dirContents = await fetchRepoContents(repoPath, currentPath);
+        const targetFile = dirContents.find(c => c.name === file && c.type === 'file');
+        if (targetFile?.download_url) {
+          const text = await fetchFileContent(targetFile.download_url);
+          setIsThinking(false);
+          setHistory(prev => [...prev, { type: 'output', content: text.substring(0, 2000) + (text.length > 2000 ? '\n... [TRUNCATED]' : '') }]);
+        } else {
+          setIsThinking(false);
+          setHistory(prev => [...prev, { type: 'error', content: 'FILE_NOT_FOUND: ' + file }]);
+        }
+        break;
+      case 'oracle':
+        const query = args.join(' ');
+        setIsThinking(true);
+        const answer = await askOracle(query);
+        setIsThinking(false);
+        setHistory(prev => [...prev, { type: 'output', content: `ORACLE > ${answer}` }]);
+        break;
+      case 'projects':
+        setHistory(prev => [...prev, { type: 'output', content: 'FETCHING REPOS... [VOID_ENGINE, NEURAL_SHELL, GHOST_PROTOCOL]' }]);
+        break;
+      case 'git':
+        if (args[0] === 'status') {
+          setHistory(prev => [...prev, { type: 'output', content: `On branch main\nNode: ${activeProject?.title}\nHash: ${activeProject?.commitHash}\nWorking tree clean.` }]);
+        } else {
+          setHistory(prev => [...prev, { type: 'output', content: 'usage: git <status|log|branch>' }]);
+        }
+        break;
+      default:
+        setHistory(prev => [...prev, { type: 'error', content: `COMMAND NOT FOUND: ${cmd}` }]);
     }
-  }, [history]);
+  }, [history, activeProject, currentPath]);
 
-  // Listen for external command events (e.g., from Command Palette)
   useEffect(() => {
     const handleExternalCmd = (e: any) => {
-      if (e.detail) {
-        executeCommand(e.detail);
-      }
+      if (e.detail) executeCommand(e.detail);
     };
     window.addEventListener('TERMINAL_CMD', handleExternalCmd);
     return () => window.removeEventListener('TERMINAL_CMD', handleExternalCmd);
@@ -131,28 +155,25 @@ Date:   Sun May 12 09:15:44 2024
     }
   };
 
-  const focusInput = () => {
-    inputRef.current?.focus();
-  };
-
   return (
     <div 
       id="terminal-section"
       className="bg-black text-white p-6 border-4 border-black font-mono brutal-shadow h-[400px] overflow-hidden flex flex-col cursor-text scroll-mt-24"
-      onClick={focusInput}
+      onClick={() => inputRef.current?.focus()}
     >
       <div className="flex justify-between items-center mb-4 border-b border-white/20 pb-2">
-        <span className="text-xs uppercase font-bold tracking-widest">System_Terminal_v4.0.1</span>
-        <div className="flex gap-2">
-          <div className="w-3 h-3 bg-white"></div>
-          <div className="w-3 h-3 border border-white"></div>
+        <span className="text-xs uppercase font-bold tracking-widest">
+          {activeProject ? `NODE_${activeProject.title}` : 'SYSTEM_ROOT'}@V4.0.1
+        </span>
+        <div className="flex gap-2 text-[10px] font-bold opacity-50">
+          <span>PATH: /{activeProject?.title.toLowerCase()}{currentPath ? `/${currentPath}` : ''}</span>
         </div>
       </div>
       
       <div className="flex-1 overflow-y-auto mb-4 space-y-1 scrollbar-hide">
         {history.map((msg, i) => (
           <div key={i} className={`text-sm whitespace-pre-wrap ${
-            msg.type === 'error' ? 'text-red-500' : 
+            msg.type === 'error' ? 'text-red-500 font-bold' : 
             msg.type === 'input' ? 'text-green-400' : 
             msg.type === 'system' ? 'text-zinc-500 italic' : 
             'text-white'
@@ -162,7 +183,7 @@ Date:   Sun May 12 09:15:44 2024
           </div>
         ))}
         {isThinking && (
-          <div className="text-zinc-500 animate-pulse text-sm">ORACLE IS THINKING...</div>
+          <div className="text-zinc-500 animate-pulse text-sm">PROCESSING_DATA_STREAM...</div>
         )}
         <div ref={bottomRef} />
       </div>
@@ -178,27 +199,17 @@ Date:   Sun May 12 09:15:44 2024
             value={input} 
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="absolute inset-0 w-full bg-transparent border-none outline-none text-transparent caret-transparent font-mono text-sm selection:bg-white/20"
+            className="absolute inset-0 w-full bg-transparent border-none outline-none text-transparent caret-transparent font-mono text-sm"
             autoFocus
           />
         </div>
       </form>
 
       <style>{`
-        @keyframes cursor-blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-        .animate-cursor-blink {
-          animation: cursor-blink 0.8s step-end infinite;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        @keyframes cursor-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .animate-cursor-blink { animation: cursor-blink 0.8s step-end infinite; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );

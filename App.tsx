@@ -1,14 +1,17 @@
 
-import React from 'react';
-import { ASCII_LOGO } from './constants';
+import React, { useState } from 'react';
+import { ASCII_LOGO, PROJECTS } from './constants';
 import TerminalShell from './components/TerminalShell';
 import GitGraph from './components/GitGraph';
 import ProjectGrid from './components/ProjectGrid';
 import CommandPalette from './components/CommandPalette';
+import HeartbeatTicker from './components/HeartbeatTicker';
+import { Project } from './types';
 
 const App: React.FC = () => {
+  const [activeProject, setActiveProject] = useState<Project>(PROJECTS[0]);
+
   const openCommandPalette = () => {
-    // Dispatch a CMD+K keyboard event manually to toggle the palette
     window.dispatchEvent(new KeyboardEvent('keydown', {
       key: 'k',
       metaKey: true,
@@ -17,9 +20,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black p-4 md:p-8 lg:p-12 space-y-24 selection:bg-black selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-white text-black p-4 md:p-8 lg:p-12 pb-24 space-y-24 selection:bg-black selection:text-white overflow-x-hidden">
       
       <CommandPalette />
+      <HeartbeatTicker />
 
       {/* Header / Hero */}
       <header className="relative flex flex-col items-start pt-12">
@@ -72,11 +76,11 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <TerminalShell />
+          <TerminalShell activeProject={activeProject} />
         </div>
 
         <div id="git-section" className="lg:col-span-5 scroll-mt-24">
-          <GitGraph />
+          <GitGraph activeProject={activeProject} />
         </div>
       </section>
 
@@ -87,7 +91,83 @@ const App: React.FC = () => {
           <div className="flex-1 h-4 bg-black mb-4"></div>
           <span className="text-xs font-mono font-bold mb-4">ROOT/SRC/BIN/*</span>
         </div>
-        <ProjectGrid />
+        <ProjectGrid onProjectSelect={setActiveProject} />
+      </section>
+
+      {/* Activity Section */}
+      <section id="activity-section" className="scroll-mt-24">
+        <div className="flex items-end gap-6 mb-12 flex-row-reverse">
+          <h2 className="text-6xl md:text-8xl font-black italic leading-none tracking-tighter">ACTIVITY_PULSE</h2>
+          <div className="flex-1 h-4 bg-black mb-4"></div>
+          <span className="text-xs font-mono font-bold mb-4">NODE_HEALTH/SATRIYOP</span>
+        </div>
+        
+        <div className="border-8 border-black bg-white p-8 brutal-shadow relative overflow-hidden group">
+          <div className="absolute top-0 left-0 bg-black text-white px-4 py-1 text-[10px] font-black uppercase z-10">
+            SYSTEM_ACTIVITY_LOG // USER: SATRIYOP
+          </div>
+          
+          <div className="flex flex-col gap-8">
+            <div className="w-full overflow-x-auto pb-4 scrollbar-brutal">
+              <div className="min-w-[800px] grayscale contrast-[200%] brightness-[0.8] hover:grayscale-0 transition-all duration-500 cursor-crosshair">
+                <img 
+                  src="https://ghchart.rshah.org/000000/satriyop" 
+                  alt="satriyop's GitHub Contributions" 
+                  className="w-full h-auto block"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t-4 border-black">
+              <div className="space-y-4">
+                <h4 className="text-xs font-black uppercase bg-black text-white px-2 py-1 inline-block">LEGEND_INTERPRETATION</h4>
+                <div className="flex items-center gap-2 font-mono text-xs font-bold">
+                  <span>LESS</span>
+                  <div className="flex gap-1">
+                    <div className="w-4 h-4 bg-zinc-100 border border-black"></div>
+                    <div className="w-4 h-4 bg-zinc-300 border border-black"></div>
+                    <div className="w-4 h-4 bg-zinc-500 border border-black"></div>
+                    <div className="w-4 h-4 bg-zinc-700 border border-black"></div>
+                    <div className="w-4 h-4 bg-black border border-black"></div>
+                  </div>
+                  <span>MORE</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-xs font-black uppercase">DIAGNOSTIC_STATS</h4>
+                <div className="font-mono text-[10px] space-y-1">
+                  <div className="flex justify-between border-b border-black/10">
+                    <span>UPTIME:</span>
+                    <span className="font-bold">99.982%</span>
+                  </div>
+                  <div className="flex justify-between border-b border-black/10">
+                    <span>COMMITS_SYNCED:</span>
+                    <span className="font-bold">TOTAL_VERIFIED</span>
+                  </div>
+                  <div className="flex justify-between border-b border-black/10">
+                    <span>NODE_STATUS:</span>
+                    <span className="text-green-600 font-bold">STABLE</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end">
+                <div className="text-right">
+                  <div className="text-[40px] font-black leading-none italic tracking-tighter uppercase opacity-10">
+                    PULSE_SYNC
+                  </div>
+                  <div className="text-[10px] font-mono opacity-40 uppercase">
+                    Last_Fetch: {new Date().toLocaleTimeString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-[0.03] transition-opacity bg-[url('https://media.giphy.com/media/oEI9uWUicG79C/giphy.gif')] mix-blend-multiply"></div>
+        </div>
       </section>
 
       {/* Footer / Exit */}
@@ -95,7 +175,7 @@ const App: React.FC = () => {
         <div className="space-y-4">
           <h4 className="text-xl font-black underline italic">CONTACT_METHODS</h4>
           <ul className="space-y-1 font-mono text-sm font-bold">
-            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://github.com/enterk0d3', '_blank')}>/github/enterk0d3</li>
+            <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://github.com/satriyop', '_blank')}>/github/satriyop</li>
             <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://twitter.com/enterk0d3', '_blank')}>/twitter/enterk0d3</li>
             <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.location.href = 'mailto:system@enterk0d3.com'}>/email/system@enterk0d3.com</li>
           </ul>
@@ -119,7 +199,6 @@ const App: React.FC = () => {
         </div>
       </footer>
 
-      {/* Floating Noise Overlays (Aesthetics) */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-50"></div>
     </div>
   );
