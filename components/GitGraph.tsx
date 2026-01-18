@@ -130,22 +130,30 @@ const GitGraph: React.FC<GitGraphProps> = ({ activeProject }) => {
       {selectedNode && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-white/20 backdrop-blur-sm animate-in fade-in">
           <div className="absolute inset-0 bg-black/40" onClick={closeModal}></div>
-          <div className="bg-white border-8 border-black p-6 brutal-shadow max-w-lg w-full relative z-10 animate-in zoom-in-95">
-            <h3 className="text-3xl font-black uppercase italic tracking-tighter border-b-4 border-black mb-4">
+          <div className="bg-white border-8 border-black p-6 brutal-shadow max-w-lg w-full relative z-10 animate-in zoom-in-95 max-h-[85vh] overflow-y-auto flex flex-col">
+            <button 
+              onClick={closeModal}
+              className="absolute top-4 right-4 bg-black text-white p-1 hover:bg-zinc-800 transition-colors z-20"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h3 className="text-3xl font-black uppercase italic tracking-tighter border-b-4 border-black mb-4 pr-8 shrink-0 break-words">
               {selectedNode.label}
             </h3>
-            <div className="space-y-4 font-mono text-sm">
-              <p className="bg-zinc-100 p-4 border-2 border-black italic leading-tight">
+            <div className="space-y-4 font-mono text-sm overflow-y-auto">
+              <p className="bg-zinc-100 p-4 border-2 border-black italic leading-tight break-words">
                 "{selectedNode.description}"
               </p>
-              <div className="flex justify-between text-[10px] font-black">
+              <div className="flex flex-col sm:flex-row justify-between text-[10px] font-black gap-2">
                 <span>AUTHOR: @{selectedNode.author || 'SYSTEM'}</span>
                 <span>DATE: {selectedNode.date}</span>
               </div>
             </div>
             <button 
               onClick={closeModal}
-              className="mt-6 w-full bg-black text-white py-3 font-black uppercase border-4 border-black hover:bg-white hover:text-black transition-all"
+              className="mt-6 w-full bg-black text-white py-3 font-black uppercase border-4 border-black hover:bg-white hover:text-black transition-all shrink-0"
             >
               DISMISS
             </button>
