@@ -19,12 +19,14 @@ const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject, allProject
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isThinking, setIsThinking] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const historyContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [history]);
+    if (historyContainerRef.current) {
+      historyContainerRef.current.scrollTop = historyContainerRef.current.scrollHeight;
+    }
+  }, [history, isThinking]);
 
   const executeCommand = useCallback(async (fullCommand: string) => {
     const trimmedInput = fullCommand.trim();
@@ -172,7 +174,7 @@ const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject, allProject
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto mb-4 space-y-1 scrollbar-hide">
+      <div ref={historyContainerRef} className="flex-1 overflow-y-auto mb-4 space-y-1 scrollbar-hide">
         {history.map((msg, i) => (
           <div key={i} className={`text-sm whitespace-pre-wrap ${
             msg.type === 'error' ? 'text-red-500 font-bold' : 
@@ -187,7 +189,7 @@ const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject, allProject
         {isThinking && (
           <div className="text-zinc-500 animate-pulse text-sm">PROCESSING_DATA_STREAM...</div>
         )}
-        <div ref={bottomRef} />
+        
       </div>
 
       <form onSubmit={handleFormSubmit} className="flex gap-2 border-t border-white/20 pt-4 relative">
