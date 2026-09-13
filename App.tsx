@@ -241,7 +241,7 @@ const App: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
             {/* Direct Email Card */}
             <div className="border-4 border-black p-6 bg-white tactile-card flex flex-col justify-between hud-corner">
               <div>
@@ -297,6 +297,35 @@ const App: React.FC = () => {
               </div>
               <div className="pt-4 border-t-2 border-black/20 flex items-center justify-between mt-6">
                 <span className="text-[10px] font-mono font-black uppercase group-hover:underline">VIEW_PROFILE</span>
+                <span className="text-xs font-black">→</span>
+              </div>
+            </a>
+
+            {/* LinkedIn Card */}
+            <a
+              href="https://www.linkedin.com/in/satriyo-pamungkas/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-4 border-black p-6 bg-white tactile-card flex flex-col justify-between group cursor-pointer hud-corner"
+            >
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[10px] font-mono font-black uppercase tracking-wider bg-black text-white px-2 py-0.5">
+                    PROFESSIONAL_NETWORK
+                  </span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+                <h4 className="text-2xl font-black italic uppercase tracking-tight mb-1">
+                  LINKEDIN
+                </h4>
+                <p className="text-xs font-mono font-bold text-zinc-500">
+                  in/satriyo-pamungkas
+                </p>
+              </div>
+              <div className="pt-4 border-t-2 border-black/20 flex items-center justify-between mt-6">
+                <span className="text-[10px] font-mono font-black uppercase group-hover:underline">CONNECT</span>
                 <span className="text-xs font-black">→</span>
               </div>
             </a>

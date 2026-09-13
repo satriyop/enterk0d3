@@ -29,8 +29,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ projects = [], onProjec
     { id: 'sys-clear', label: 'Terminal: Clear History', category: 'SYSTEM', action: () => window.dispatchEvent(new CustomEvent('TERMINAL_CMD', { detail: 'clear' })) },
     { id: 'sys-whoami', label: 'Terminal: Run Whoami', category: 'SYSTEM', action: () => window.dispatchEvent(new CustomEvent('TERMINAL_CMD', { detail: 'whoami' })) },
     { id: 'soc-github', label: 'Contact: GitHub', shortcut: 'C G', category: 'SOCIAL', action: () => window.open('https://github.com/satriyop', '_blank') },
+    { id: 'soc-linkedin', label: 'Contact: LinkedIn', shortcut: 'C L', category: 'SOCIAL', action: () => window.open('https://www.linkedin.com/in/satriyo-pamungkas/', '_blank') },
     { id: 'soc-twitter', label: 'Contact: Twitter', shortcut: 'C T', category: 'SOCIAL', action: () => window.open('https://twitter.com/satriyop', '_blank') },
-    { id: 'soc-email', label: 'Contact: Email (satriyo@pamungkas.org)', category: 'SOCIAL', action: () => window.location.href = 'mailto:satriyo@pamungkas.org' },
+    { id: 'soc-email', label: 'Contact: Email', shortcut: 'C E', category: 'SOCIAL', action: () => window.location.href = 'mailto:satriyo@pamungkas.org' },
   ];
 
   const projectCommands: Command[] = useMemo(() => {
@@ -99,7 +100,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ projects = [], onProjec
       <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
       
       {/* Palette */}
-      <div className="relative w-full max-w-xl bg-white border-8 border-black brutal-shadow animate-palette-in flex flex-col max-h-[60vh] hud-corner">
+      <div className="relative w-full max-w-xl bg-white border-8 border-black brutal-shadow animate-palette-in flex flex-col max-h-[75vh] hud-corner">
         {/* Search Input */}
         <div className="flex items-center p-4 border-b-4 border-black gap-4 bg-zinc-100">
           <span className="text-xl font-black">{'>'}</span>
