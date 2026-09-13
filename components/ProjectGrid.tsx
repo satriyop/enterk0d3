@@ -31,6 +31,17 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, on
     return ['ALL', ...Array.from(set).slice(0, 5)];
   }, [projects]);
 
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: projects.length };
+    projects.forEach(p => {
+      p.tags.forEach(t => {
+        const upper = t.toUpperCase();
+        counts[upper] = (counts[upper] || 0) + 1;
+      });
+    });
+    return counts;
+  }, [projects]);
+
   const filteredProjects = useMemo(() => {
     if (activeTag === 'ALL') return projects;
     return projects.filter(p => p.tags.some(t => t.toUpperCase() === activeTag));
@@ -116,28 +127,51 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, on
 
   return (
     <div className="space-y-6 relative" onMouseMove={handleMouseMove}>
-      {/* Category Filter Bar */}
-      <div className="flex flex-wrap items-center gap-2 pb-2 border-b-4 border-black">
-        <span className="text-[10px] font-black uppercase tracking-widest mr-1 flex items-center gap-1.5 select-none">
-          <span className="w-2 h-2 bg-black inline-block"></span>
-          SCOPE:
-        </span>
-        {allTags.map(tag => (
-          <button
-            key={tag}
-            onClick={() => setActiveTag(tag)}
-            className={`text-[10px] font-mono font-black uppercase px-2.5 py-1 border-2 border-black tactile-btn cursor-pointer ${
-              activeTag === tag
-                ? 'bg-[#E2FF00] text-black shadow-none'
-                : 'bg-white text-black hover:bg-black hover:text-white'
-            }`}
-          >
-            [{tag}]
-          </button>
-        ))}
-        <span className="ml-auto text-[10px] font-mono font-bold opacity-40 hidden sm:inline select-none">
-          INDEX: {filteredProjects.length}/{projects.length}
-        </span>
+      {/* Integrated CAD Scope Console Strip */}
+      <div className="border-4 border-black bg-zinc-100 p-2 sm:p-2.5 flex flex-wrap items-center justify-between gap-3 hud-corner brutal-shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 pr-2 sm:border-r-2 sm:border-black/30 select-none">
+            <span className="w-2.5 h-2.5 bg-[#E2FF00] border border-black inline-block animate-pulse"></span>
+            <span className="text-[10px] font-mono font-black uppercase tracking-widest text-black">
+              SCOPE // FILTER
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {allTags.map(tag => {
+              const isActive = activeTag === tag;
+              const count = tagCounts[tag] ?? 0;
+
+              return (
+                <button
+                  key={tag}
+                  onClick={() => setActiveTag(tag)}
+                  className={`text-[10px] font-mono font-black uppercase px-2.5 py-1 transition-all border-2 border-black cursor-pointer flex items-center gap-1.5 ${
+                    isActive
+                      ? 'bg-black text-[#E2FF00] translate-x-0.5 translate-y-0.5'
+                      : 'bg-white text-black hover:bg-zinc-200'
+                  }`}
+                >
+                  <span>{tag}</span>
+                  <span
+                    className={`text-[9px] px-1 py-0.5 border leading-none font-bold ${
+                      isActive
+                        ? 'bg-[#E2FF00] text-black border-black'
+                        : 'bg-zinc-100 text-zinc-600 border-black/30'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 select-none font-mono text-[10px] font-black bg-white px-2.5 py-1 border-2 border-black">
+          <span className="text-zinc-500">INDEX:</span>
+          <span className="text-black">{filteredProjects.length} / {projects.length}</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
