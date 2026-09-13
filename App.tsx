@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ASCII_LOGO, PROJECTS as FALLBACK_PROJECTS } from './constants';
+import { PROJECTS as FALLBACK_PROJECTS } from './constants';
 import TerminalShell from './components/TerminalShell';
 import GitGraph from './components/GitGraph';
 import ProjectGrid from './components/ProjectGrid';
@@ -13,13 +13,11 @@ const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(FALLBACK_PROJECTS);
   const [activeProject, setActiveProject] = useState<Project>(FALLBACK_PROJECTS[0]);
   const [previewProject, setPreviewProject] = useState<Project | null>(null);
-  const [isSyncing, setIsSyncing] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
     const syncGitHub = async () => {
-      setIsSyncing(true);
       const repos = await fetchUserRepos('satriyop');
       if (!isMounted) return;
       
@@ -62,7 +60,6 @@ const App: React.FC = () => {
           });
         }
       }
-      if (isMounted) setIsSyncing(false);
     };
 
     syncGitHub();
@@ -120,38 +117,11 @@ const App: React.FC = () => {
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 lg:p-12 pb-24 space-y-24 scroll-smooth">
         <CommandPalette projects={projects} onProjectSelect={handleProjectSelect} />
 
-        {/* Header / Hero */}
-        <header className="relative flex flex-col items-start pt-8">
-          <pre className="ascii-art font-mono font-bold text-black mb-8 overflow-x-auto w-full select-none">
-            {ASCII_LOGO}
-          </pre>
-
-          <div className="space-y-3 max-w-4xl">
-            <div className="flex items-center gap-4">
-              <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-none glitch-hover cursor-default">
-                ENTERK0D3
-              </h1>
-              {isSyncing ? (
-                <div className="bg-black text-[#E2FF00] text-[10px] font-mono font-bold px-2.5 py-1 border-2 border-black animate-pulse mb-auto mt-2">
-                  SYNCING_GITHUB_API...
-                </div>
-              ) : (
-                <div className="bg-[#E2FF00] text-black text-[10px] font-mono font-black px-2.5 py-1 border-2 border-black brutal-shadow-sm mb-auto mt-2">
-                  STREAM_LIVE
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="h-4 w-12 bg-black animate-pulse"></div>
-              <p className="text-xl md:text-2xl font-black border-l-8 border-black pl-4 tracking-tight">
-                BRUTALIST ARCHITECT <span className="text-[#FF4600]">/</span> SYSTEM DESIGNER <span className="text-[#FF4600]">/</span> CODE PURIST
-              </p>
-            </div>
-          </div>
-        </header>
+        {/* Visually Hidden Semantic Title for Accessibility */}
+        <h1 className="sr-only">ENTERK0D3 - Brutalist Architect & System Designer</h1>
 
         {/* Interactive Core Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start pt-6">
           <div className="lg:col-span-7 space-y-12">
             <div id="mission-section" className="border-8 border-black p-8 bg-zinc-100 brutal-shadow relative scroll-mt-24 hud-corner">
               <div className="absolute -top-6 -left-6 bg-[#E2FF00] text-black border-4 border-black p-2 text-xs font-black brutal-shadow-sm">
