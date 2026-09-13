@@ -28,7 +28,7 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, on
   const allTags = useMemo(() => {
     const set = new Set<string>();
     projects.forEach(p => p.tags.forEach(t => set.add(t.toUpperCase())));
-    return ['ALL', ...Array.from(set).slice(0, 5)];
+    return ['ALL', ...Array.from(set).slice(0, 8)];
   }, [projects]);
 
   const tagCounts = useMemo(() => {

@@ -24,7 +24,7 @@ const App: React.FC = () => {
       if (repos && repos.length > 0) {
         const mappedProjects: Project[] = repos
           .filter((repo: any) => !repo.fork)
-          .slice(0, 5)
+          .slice(0, 6)
           .map((repo: any) => ({
             id: repo.id.toString(),
             title: repo.name.toUpperCase(),
