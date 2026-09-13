@@ -96,6 +96,18 @@ const App: React.FC = () => {
     }));
   };
 
+  const [utcTime, setUtcTime] = useState('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setUtcTime(now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC');
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const graphContainerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -105,39 +117,71 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-white text-black overflow-hidden selection:bg-black selection:text-white">
+    <div className="h-screen flex flex-col bg-white text-black overflow-hidden selection:bg-black selection:text-[#E2FF00] dot-grid">
       
+      {/* Top Architectural HUD Status Bar */}
+      <div className="border-b-4 border-black bg-white px-4 py-2 flex flex-wrap justify-between items-center text-[10px] font-mono font-bold tracking-wider select-none shrink-0 z-40">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 bg-[#E2FF00] border border-black inline-block animate-pulse"></span>
+            <span>NODE_STATUS: <span className="text-black font-black bg-[#E2FF00] px-1 border border-black">ONLINE</span></span>
+          </div>
+          <span className="opacity-30">|</span>
+          <span className="hidden sm:inline">SYS_CLOCK: {utcTime || 'INITIALIZING...'}</span>
+          <span className="opacity-30 hidden sm:inline">|</span>
+          <span className="hidden sm:inline">CLUSTER: 0xALPHA // SECURE_ORIGIN</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="bg-black text-[#E2FF00] px-2 py-0.5 font-black border border-black">LATENCY: ~14MS</span>
+          <button 
+            onClick={openCommandPalette}
+            className="hidden md:inline-block bg-white hover:bg-black hover:text-white px-2 py-0.5 border-2 border-black transition-colors font-black tactile-btn"
+          >
+            CMD+K [PALETTE]
+          </button>
+        </div>
+      </div>
+
       {/* Main Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 lg:p-12 pb-24 space-y-24 scroll-smooth">
         <CommandPalette projects={projects} onProjectSelect={handleProjectSelect} />
 
         {/* Header / Hero */}
-        <header className="relative flex flex-col items-start pt-12">
-          <div className="absolute top-0 right-0 text-[8px] font-mono leading-tight opacity-20 pointer-events-none select-none">
-            {Array.from({length: 10}).map((_, i) => (
-              <div key={i}>{Math.random().toString(36).substring(2, 15)} {Math.random().toString(36).substring(2, 15)}</div>
-            ))}
+        <header className="relative flex flex-col items-start pt-8 hud-corner">
+          <div className="absolute top-0 right-0 text-[9px] font-mono leading-tight bg-black text-[#E2FF00] p-3 border-2 border-black brutal-shadow-sm pointer-events-none select-none hidden lg:block">
+            <div className="flex justify-between gap-4 border-b border-[#E2FF00]/40 pb-1 mb-1.5 text-[8px] text-white">
+              <span>SYSTEM_METRICS</span>
+              <span>LIVE_PULSE</span>
+            </div>
+            <div>CORE: BRUTAL_ENGINE_V4.2</div>
+            <div>ORIGIN: 52.5200° N, 13.4050° E</div>
+            <div>STATUS: ZERO_DEPENDENCY_PURIST</div>
+            <div className="mt-1 text-white font-bold">CLOCK: {utcTime}</div>
           </div>
 
-          <pre className="ascii-art font-mono font-bold text-black mb-8 overflow-x-auto w-full">
+          <pre className="ascii-art font-mono font-bold text-black mb-8 overflow-x-auto w-full select-none">
             {ASCII_LOGO}
           </pre>
 
-          <div className="space-y-2 max-w-4xl">
+          <div className="space-y-3 max-w-4xl">
             <div className="flex items-center gap-4">
-               <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-none">
+              <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-none glitch-hover cursor-default">
                 ENTERK0D3
               </h1>
-              {isSyncing && (
-                <div className="bg-black text-white text-[10px] font-mono px-2 py-1 animate-pulse mb-auto mt-2">
+              {isSyncing ? (
+                <div className="bg-black text-[#E2FF00] text-[10px] font-mono font-bold px-2.5 py-1 border-2 border-black animate-pulse mb-auto mt-2">
                   SYNCING_GITHUB_API...
+                </div>
+              ) : (
+                <div className="bg-[#E2FF00] text-black text-[10px] font-mono font-black px-2.5 py-1 border-2 border-black brutal-shadow-sm mb-auto mt-2">
+                  STREAM_LIVE
                 </div>
               )}
             </div>
             <div className="flex items-center gap-4">
               <div className="h-4 w-12 bg-black animate-pulse"></div>
-              <p className="text-xl md:text-2xl font-bold border-l-8 border-black pl-4">
-                BRUTALIST ARCHITECT / SYSTEM DESIGNER / CODE PURIST
+              <p className="text-xl md:text-2xl font-black border-l-8 border-black pl-4 tracking-tight">
+                BRUTALIST ARCHITECT <span className="text-[#FF4600]">/</span> SYSTEM DESIGNER <span className="text-[#FF4600]">/</span> CODE PURIST
               </p>
             </div>
           </div>
@@ -146,8 +190,8 @@ const App: React.FC = () => {
         {/* Interactive Core Section */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           <div className="lg:col-span-7 space-y-12">
-            <div id="mission-section" className="border-8 border-black p-8 bg-zinc-100 brutal-shadow relative scroll-mt-24">
-              <div className="absolute -top-6 -left-6 bg-black text-white p-2 text-xs font-bold brutal-shadow-sm">
+            <div id="mission-section" className="border-8 border-black p-8 bg-zinc-100 brutal-shadow relative scroll-mt-24 hud-corner">
+              <div className="absolute -top-6 -left-6 bg-[#E2FF00] text-black border-4 border-black p-2 text-xs font-black brutal-shadow-sm">
                 MISSION_STATEMENT
               </div>
               <p className="text-2xl md:text-3xl font-black leading-tight italic">
@@ -156,7 +200,7 @@ const App: React.FC = () => {
               <div className="mt-8 flex gap-4">
                 <button 
                   onClick={openCommandPalette}
-                  className="bg-black text-white px-6 py-3 font-bold hover:bg-white hover:text-black border-4 border-black transition-all brutal-shadow-sm active:translate-y-1"
+                  className="bg-black text-white hover:bg-[#E2FF00] hover:text-black px-6 py-3 font-black border-4 border-black transition-all tactile-btn"
                 >
                   ESTABLISH_CONNECTION (Cmd+K)
                 </button>

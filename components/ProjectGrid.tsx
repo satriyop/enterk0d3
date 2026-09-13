@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { Project } from '../types';
@@ -20,9 +20,21 @@ const renderMarkdown = (content: string): string => {
 const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, onProjectHover }) => {
   const [hoveredProject, setHoveredProject] = useState<Project | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [activeTag, setActiveTag] = useState<string>('ALL');
   const [readmeContent, setReadmeContent] = useState<string | null>(null);
   const [isLoadingReadme, setIsLoadingReadme] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    projects.forEach(p => p.tags.forEach(t => set.add(t.toUpperCase())));
+    return ['ALL', ...Array.from(set).slice(0, 5)];
+  }, [projects]);
+
+  const filteredProjects = useMemo(() => {
+    if (activeTag === 'ALL') return projects;
+    return projects.filter(p => p.tags.some(t => t.toUpperCase() === activeTag));
+  }, [projects, activeTag]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
@@ -104,8 +116,32 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, on
 
   return (
     <div className="space-y-6 relative" onMouseMove={handleMouseMove}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {projects.map((project) => {
+      {/* Category Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2 pb-2 border-b-4 border-black">
+        <span className="text-[10px] font-black uppercase tracking-widest mr-1 flex items-center gap-1.5 select-none">
+          <span className="w-2 h-2 bg-black inline-block"></span>
+          SCOPE:
+        </span>
+        {allTags.map(tag => (
+          <button
+            key={tag}
+            onClick={() => setActiveTag(tag)}
+            className={`text-[10px] font-mono font-black uppercase px-2.5 py-1 border-2 border-black tactile-btn cursor-pointer ${
+              activeTag === tag
+                ? 'bg-[#E2FF00] text-black shadow-none'
+                : 'bg-white text-black hover:bg-black hover:text-white'
+            }`}
+          >
+            [{tag}]
+          </button>
+        ))}
+        <span className="ml-auto text-[10px] font-mono font-bold opacity-40 hidden sm:inline select-none">
+          INDEX: {filteredProjects.length}/{projects.length}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {filteredProjects.map((project) => {
           const htmlDescription = renderMarkdown(project.description);
 
           return (
@@ -114,34 +150,39 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, on
               onClick={() => handleCardClick(project)}
               onMouseEnter={() => handleMouseEnter(project)}
               onMouseLeave={handleMouseLeave}
-              className={`border-4 border-black p-4 brutal-shadow group transition-all cursor-pointer relative overflow-hidden flex flex-col min-h-[220px] ${
-                hoveredProject?.id === project.id ? 'bg-zinc-100 -translate-y-1' : 'bg-white'
+              className={`border-4 border-black p-5 tactile-card group cursor-pointer relative overflow-hidden flex flex-col min-h-[230px] hud-corner ${
+                hoveredProject?.id === project.id ? 'bg-zinc-50' : 'bg-white'
               }`}
             >
-              <div className="absolute top-0 right-0 bg-black text-white text-[8px] font-black px-1 uppercase tracking-tighter opacity-20">
+              <div className="absolute top-0 right-0 bg-black text-[#E2FF00] text-[8px] font-mono font-black px-1.5 py-0.5 uppercase tracking-tighter">
                 NODE_REF: {project.id}
               </div>
               
               <div className="flex justify-between items-start mb-2">
-                <h3 className="text-xl font-black italic break-words">{project.title}</h3>
+                <h3 className="text-xl font-black italic break-words group-hover:text-black transition-colors">
+                  {project.title}
+                </h3>
               </div>
               
               <div 
-                className="text-[11px] mb-4 font-mono leading-relaxed prose-brutal flex-1 line-clamp-3 opacity-70 group-hover:opacity-100 transition-opacity"
+                className="text-[11px] mb-4 font-mono leading-relaxed prose-brutal flex-1 line-clamp-3 opacity-75 group-hover:opacity-100 transition-opacity"
                 dangerouslySetInnerHTML={{ __html: htmlDescription }}
               />
               
-              <div className="flex flex-wrap gap-1 mb-4">
+              <div className="flex flex-wrap gap-1.5 mb-4">
                 {project.tags.slice(0, 3).map(tag => (
-                  <span key={tag} className="border border-black px-1.5 py-0.5 text-[9px] font-bold uppercase bg-white">
+                  <span 
+                    key={tag} 
+                    className="border-2 border-black px-2 py-0.5 text-[9px] font-black uppercase bg-white group-hover:bg-[#E2FF00] group-hover:text-black transition-colors"
+                  >
                     {tag}
                   </span>
                 ))}
               </div>
               
-              <div className="border-t border-black pt-2 flex justify-between items-center group-hover:bg-black group-hover:text-white transition-all -mx-4 px-4 pb-1 mt-auto">
-                <span className="text-[10px] font-black uppercase">DEPLOY_INTEL</span>
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="border-t-2 border-black pt-2 flex justify-between items-center group-hover:bg-black group-hover:text-[#E2FF00] transition-all -mx-5 px-5 pb-1 mt-auto">
+                <span className="text-[10px] font-black uppercase tracking-wider">_INSPECT_NODE</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </div>

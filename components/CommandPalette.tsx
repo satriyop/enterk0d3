@@ -99,7 +99,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ projects = [], onProjec
       <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
       
       {/* Palette */}
-      <div className="relative w-full max-w-xl bg-white border-8 border-black brutal-shadow animate-palette-in flex flex-col max-h-[60vh]">
+      <div className="relative w-full max-w-xl bg-white border-8 border-black brutal-shadow animate-palette-in flex flex-col max-h-[60vh] hud-corner">
         {/* Search Input */}
         <div className="flex items-center p-4 border-b-4 border-black gap-4 bg-zinc-100">
           <span className="text-xl font-black">{'>'}</span>
@@ -112,7 +112,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ projects = [], onProjec
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <div className="text-[10px] font-black border-2 border-black px-1 bg-white">ESC_TO_CLOSE</div>
+          <div className="text-[10px] font-mono font-black border-2 border-black px-1.5 py-0.5 bg-[#E2FF00] text-black">
+            ESC_TO_CLOSE
+          </div>
         </div>
 
         {/* Command List */}
@@ -122,7 +124,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ projects = [], onProjec
               <div
                 key={cmd.id}
                 className={`flex items-center justify-between p-3 cursor-pointer transition-all border-2 ${
-                  index === selectedIndex ? 'bg-black text-white border-black translate-x-1' : 'bg-white text-black border-transparent hover:border-black/20'
+                  index === selectedIndex
+                    ? 'bg-black text-[#E2FF00] border-black translate-x-1.5'
+                    : 'bg-white text-black border-transparent hover:border-black/20'
                 }`}
                 onClick={() => {
                   cmd.action();
@@ -131,13 +135,23 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ projects = [], onProjec
                 onMouseEnter={() => setSelectedIndex(index)}
               >
                 <div className="flex items-center gap-4">
-                  <span className={`text-[8px] font-mono px-1 border min-w-[60px] text-center ${index === selectedIndex ? 'border-white text-white' : 'border-black text-black'}`}>
+                  <span
+                    className={`text-[8px] font-mono px-1.5 py-0.5 border min-w-[65px] text-center font-bold ${
+                      index === selectedIndex
+                        ? 'border-[#E2FF00] text-[#E2FF00] bg-black'
+                        : 'border-black text-black'
+                    }`}
+                  >
                     {cmd.category}
                   </span>
                   <span className="font-black text-sm uppercase">{cmd.label}</span>
                 </div>
                 {cmd.shortcut && (
-                  <span className={`text-[10px] font-mono ${index === selectedIndex ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  <span
+                    className={`text-[10px] font-mono font-bold ${
+                      index === selectedIndex ? 'text-zinc-400' : 'text-zinc-500'
+                    }`}
+                  >
                     {cmd.shortcut}
                   </span>
                 )}

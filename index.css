@@ -2,6 +2,13 @@
 
 @theme {
   --font-jetbrains: 'JetBrains Mono', monospace;
+  --color-acid: #E2FF00;
+  --color-hazard: #FF4600;
+}
+
+:root {
+  --acid: #E2FF00;
+  --hazard: #FF4600;
 }
 
 body {
@@ -14,7 +21,7 @@ body {
 
 ::selection {
   background: #000000;
-  color: #ffffff;
+  color: #E2FF00;
 }
 
 /* Global Brutalist Scrollbar */
@@ -35,13 +42,106 @@ body {
   background: #27272a;
 }
 
-/* Brutal Shadows */
+/* Mathematical CAD Dot Grid Background */
+.dot-grid {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.14) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Brutal Solid Drop Shadows */
 .brutal-shadow {
   box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 1);
 }
 
 .brutal-shadow-sm {
   box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+}
+
+.brutal-shadow-acid {
+  box-shadow: 6px 6px 0px 0px #000000, 10px 10px 0px 0px #E2FF00;
+}
+
+/* Tactile Physics for Buttons & Cards */
+.tactile-btn {
+  box-shadow: 4px 4px 0px 0px #000000;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.tactile-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px 0px #000000;
+}
+.tactile-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px 0px #000000;
+}
+
+.tactile-card {
+  box-shadow: 6px 6px 0px 0px #000000;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.12s ease;
+}
+.tactile-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px 0px #000000;
+}
+.tactile-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
+/* Technical HUD Corner Register Marks */
+.hud-corner {
+  position: relative;
+}
+.hud-corner::before {
+  content: '+';
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  font-family: var(--font-jetbrains);
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1;
+  color: #000000;
+  pointer-events: none;
+  z-index: 10;
+}
+.hud-corner::after {
+  content: '+';
+  position: absolute;
+  bottom: -9px;
+  right: -9px;
+  font-family: var(--font-jetbrains);
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1;
+  color: #000000;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Glitch Animation */
+.glitch-hover:hover {
+  animation: brutalGlitch 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+}
+
+@keyframes brutalGlitch {
+  0% { transform: translate(0); }
+  25% { transform: translate(-2px, 2px); }
+  50% { transform: translate(2px, -2px); }
+  75% { transform: translate(-1px, -1px); }
+  100% { transform: translate(0); }
+}
+
+/* Animated Data Pulse Wire */
+@keyframes wirePulse {
+  0% { top: -20%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.animate-wire-pulse {
+  animation: wirePulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 /* ASCII Header */
@@ -86,7 +186,7 @@ body {
 .prose-brutal strong { font-weight: 800; text-decoration: underline; }
 .prose-brutal code {
   background: #000000;
-  color: #ffffff;
+  color: #E2FF00;
   padding: 1px 5px;
   font-family: var(--font-jetbrains);
   font-size: 0.85em;
@@ -111,7 +211,7 @@ body {
 }
 .prose-brutal a:hover {
   background: #000000;
-  color: #ffffff;
+  color: #E2FF00;
 }
 .prose-brutal ul {
   list-style-type: square;

@@ -30,10 +30,10 @@ const HeartbeatTicker: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-8 bg-black border-t-4 border-black text-white flex items-center overflow-hidden select-none pointer-events-none">
-      <div className="flex items-center gap-4 px-4 bg-white text-black font-black text-[10px] h-full whitespace-nowrap brutal-shadow-sm">
-        SYSTEM_HEARTBEAT_PULSE
-        <div className="w-2 h-2 bg-red-600 rounded-full animate-ping"></div>
+    <div className="w-full h-8 bg-black border-t-4 border-black text-white flex items-center overflow-hidden select-none pointer-events-none z-50">
+      <div className="flex items-center gap-3 px-4 bg-[#E2FF00] text-black font-mono font-black text-[10px] h-full whitespace-nowrap border-r-4 border-black">
+        <span>SYSTEM_PULSE</span>
+        <div className="w-2 h-2 bg-black rounded-full animate-ping"></div>
       </div>
       
       <div className="flex-1 relative flex items-center">
