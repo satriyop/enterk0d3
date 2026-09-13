@@ -5,6 +5,7 @@ import GitGraph from './components/GitGraph';
 import ProjectGrid from './components/ProjectGrid';
 import CommandPalette from './components/CommandPalette';
 import HeartbeatTicker from './components/HeartbeatTicker';
+import ActivityMatrix from './components/ActivityMatrix';
 import { Project } from './types';
 import { fetchUserRepos, fetchRepoCommits } from './services/githubService';
 
@@ -241,15 +242,9 @@ const App: React.FC = () => {
             </div>
             
             <div className="flex flex-col gap-8">
-              <div ref={graphContainerRef} className="w-full overflow-x-auto pb-4 scrollbar-brutal">
-                <div className="min-w-[600px] md:min-w-[800px] min-h-[120px] transition-all duration-500 cursor-crosshair">
-                  <img 
-                    src="https://ssr-contributions-svg.vercel.app/_/satriyop?chart=calendar&format=svg" 
-                    alt="satriyop's GitHub Contributions" 
-                    className="w-full min-h-[120px] h-auto block"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
+              <div ref={graphContainerRef} className="w-full overflow-x-auto pb-4 pt-4 scrollbar-brutal">
+                <div className="min-w-[760px] transition-all duration-500">
+                  <ActivityMatrix projects={projects} />
                 </div>
               </div>
 
@@ -258,12 +253,12 @@ const App: React.FC = () => {
                   <h4 className="text-xs font-black uppercase bg-black text-white px-2 py-1 inline-block">LEGEND_INTERPRETATION</h4>
                   <div className="flex items-center gap-2 font-mono text-xs font-bold">
                     <span>LESS</span>
-                    <div className="flex gap-1">
-                      <div className="w-4 h-4 bg-zinc-100 border border-black"></div>
-                      <div className="w-4 h-4 bg-zinc-300 border border-black"></div>
-                      <div className="w-4 h-4 bg-zinc-500 border border-black"></div>
-                      <div className="w-4 h-4 bg-zinc-700 border border-black"></div>
-                      <div className="w-4 h-4 bg-black border border-black"></div>
+                    <div className="flex gap-1.5 items-center">
+                      <div className="w-3.5 h-3.5 bg-zinc-100 border border-black/30"></div>
+                      <div className="w-3.5 h-3.5 bg-zinc-300 border border-black"></div>
+                      <div className="w-3.5 h-3.5 bg-zinc-500 border border-black"></div>
+                      <div className="w-3.5 h-3.5 bg-zinc-800 border border-black"></div>
+                      <div className="w-3.5 h-3.5 bg-[#E2FF00] border-2 border-black" title="PEAK_PULSE"></div>
                     </div>
                     <span>MORE</span>
                   </div>
