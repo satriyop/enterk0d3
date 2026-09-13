@@ -30,7 +30,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ projects = [], onProjec
     { id: 'sys-whoami', label: 'Terminal: Run Whoami', category: 'SYSTEM', action: () => window.dispatchEvent(new CustomEvent('TERMINAL_CMD', { detail: 'whoami' })) },
     { id: 'soc-github', label: 'Contact: GitHub', shortcut: 'C G', category: 'SOCIAL', action: () => window.open('https://github.com/satriyop', '_blank') },
     { id: 'soc-twitter', label: 'Contact: Twitter', shortcut: 'C T', category: 'SOCIAL', action: () => window.open('https://twitter.com/satriyop', '_blank') },
-    { id: 'soc-email', label: 'Contact: Email', category: 'SOCIAL', action: () => window.location.href = 'mailto:satriyo@enterk0d3.com' },
+    { id: 'soc-email', label: 'Contact: Email (satriyo@pamungkas.org)', category: 'SOCIAL', action: () => window.location.href = 'mailto:satriyo@pamungkas.org' },
   ];
 
   const projectCommands: Command[] = useMemo(() => {

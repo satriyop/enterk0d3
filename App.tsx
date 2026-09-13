@@ -97,17 +97,13 @@ const App: React.FC = () => {
     }));
   };
 
-  const [utcTime, setUtcTime] = useState('');
+  const [copiedEmail, setCopiedEmail] = useState(false);
 
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setUtcTime(now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC');
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText('satriyo@pamungkas.org');
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
+  };
 
   const graphContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -120,46 +116,12 @@ const App: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-white text-black overflow-hidden selection:bg-black selection:text-[#E2FF00] dot-grid">
       
-      {/* Top Architectural HUD Status Bar */}
-      <div className="border-b-4 border-black bg-white px-4 py-2 flex flex-wrap justify-between items-center text-[10px] font-mono font-bold tracking-wider select-none shrink-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 bg-[#E2FF00] border border-black inline-block animate-pulse"></span>
-            <span>NODE_STATUS: <span className="text-black font-black bg-[#E2FF00] px-1 border border-black">ONLINE</span></span>
-          </div>
-          <span className="opacity-30">|</span>
-          <span className="hidden sm:inline">SYS_CLOCK: {utcTime || 'INITIALIZING...'}</span>
-          <span className="opacity-30 hidden sm:inline">|</span>
-          <span className="hidden sm:inline">CLUSTER: 0xALPHA // SECURE_ORIGIN</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="bg-black text-[#E2FF00] px-2 py-0.5 font-black border border-black">LATENCY: ~14MS</span>
-          <button 
-            onClick={openCommandPalette}
-            className="hidden md:inline-block bg-white hover:bg-black hover:text-white px-2 py-0.5 border-2 border-black transition-colors font-black tactile-btn"
-          >
-            CMD+K [PALETTE]
-          </button>
-        </div>
-      </div>
-
       {/* Main Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 lg:p-12 pb-24 space-y-24 scroll-smooth">
         <CommandPalette projects={projects} onProjectSelect={handleProjectSelect} />
 
         {/* Header / Hero */}
-        <header className="relative flex flex-col items-start pt-8 hud-corner">
-          <div className="absolute top-0 right-0 text-[9px] font-mono leading-tight bg-black text-[#E2FF00] p-3 border-2 border-black brutal-shadow-sm pointer-events-none select-none hidden lg:block">
-            <div className="flex justify-between gap-4 border-b border-[#E2FF00]/40 pb-1 mb-1.5 text-[8px] text-white">
-              <span>SYSTEM_METRICS</span>
-              <span>LIVE_PULSE</span>
-            </div>
-            <div>CORE: BRUTAL_ENGINE_V4.2</div>
-            <div>ORIGIN: 52.5200° N, 13.4050° E</div>
-            <div>STATUS: ZERO_DEPENDENCY_PURIST</div>
-            <div className="mt-1 text-white font-bold">CLOCK: {utcTime}</div>
-          </div>
-
+        <header className="relative flex flex-col items-start pt-8">
           <pre className="ascii-art font-mono font-bold text-black mb-8 overflow-x-auto w-full select-none">
             {ASCII_LOGO}
           </pre>
@@ -293,65 +255,121 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* Footer / Exit */}
-        <footer className="border-t-8 border-black pt-12 pb-24 grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="space-y-4">
-            <h4 className="text-xl font-black underline italic">CONTACT_METHODS</h4>
-            <ul className="space-y-1 font-mono text-sm font-bold">
-              <li>
-                <a 
-                  href="https://github.com/satriyop" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-block hover:translate-x-2 transition-transform"
-                >
-                  /github/satriyop
-                </a>
-              </li>
-              <li>
-                <a 
-                  href="https://twitter.com/satriyop" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-block hover:translate-x-2 transition-transform"
-                >
-                  /twitter/satriyop
-                </a>
-              </li>
-              <li>
-                <a 
-                  href="mailto:satriyo@enterk0d3.com" 
-                  className="inline-block hover:translate-x-2 transition-transform"
-                >
-                  /email/satriyo@enterk0d3.com
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div className="space-y-4">
-            <h4 className="text-xl font-black underline italic">LOCATION_INTEL</h4>
-            <p className="text-sm font-mono leading-relaxed">
-              BASED IN A DISTRIBUTED NETWORK CLUSTER. <br />
-              PRIMARY NODE: GMT+1 <br />
-              STATUS: ACTIVE
+        {/* Footer / Contact Section */}
+        <footer id="contact-section" className="border-t-8 border-black pt-12 pb-24 space-y-8 scroll-mt-24">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b-4 border-black pb-4">
+            <div>
+              <span className="text-[10px] font-mono font-black uppercase bg-black text-[#E2FF00] px-2 py-0.5 inline-block mb-2">
+                GET_IN_TOUCH
+              </span>
+              <h3 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none">
+                CONTACT_CHANNELS
+              </h3>
+            </div>
+            <p className="text-xs font-mono font-bold text-zinc-500 max-w-sm">
+              Available for technical architecture, software design, and engineering collaborations.
             </p>
           </div>
-          <div className="flex flex-col items-end justify-between">
-            <div className="text-right">
-              <p className="text-[10px] font-mono opacity-50 uppercase">Build_ID: 987x-alpha-prod</p>
-              <p className="text-[10px] font-mono opacity-50 uppercase">Engine: Gemini_3_Flash</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+            {/* Direct Email Card */}
+            <div className="border-4 border-black p-6 bg-white tactile-card flex flex-col justify-between hud-corner">
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[10px] font-mono font-black uppercase tracking-wider bg-black text-white px-2 py-0.5">
+                    DIRECT_EMAIL
+                  </span>
+                  <span className="w-2.5 h-2.5 bg-[#E2FF00] border border-black inline-block"></span>
+                </div>
+                <p className="text-sm font-mono font-bold break-all mb-6 selection:bg-black selection:text-[#E2FF00]">
+                  satriyo@pamungkas.org
+                </p>
+              </div>
+              <div className="flex gap-2 pt-4 border-t-2 border-black/20">
+                <a
+                  href="mailto:satriyo@pamungkas.org"
+                  className="flex-1 bg-black text-white hover:bg-[#E2FF00] hover:text-black py-2.5 text-center text-xs font-mono font-black uppercase border-2 border-black tactile-btn transition-colors"
+                >
+                  SEND_MAIL
+                </a>
+                <button
+                  onClick={handleCopyEmail}
+                  className="bg-zinc-100 hover:bg-[#E2FF00] text-black px-4 py-2.5 text-xs font-mono font-black uppercase border-2 border-black tactile-btn transition-colors cursor-pointer"
+                  title="Copy email address"
+                >
+                  {copiedEmail ? 'COPIED [✓]' : 'COPY'}
+                </button>
+              </div>
             </div>
-            <div className="w-16 h-16 border-4 border-black bg-black flex items-center justify-center text-white font-black text-2xl animate-pulse">
-              E
-            </div>
+
+            {/* GitHub Card */}
+            <a
+              href="https://github.com/satriyop"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-4 border-black p-6 bg-white tactile-card flex flex-col justify-between group cursor-pointer hud-corner"
+            >
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[10px] font-mono font-black uppercase tracking-wider bg-black text-white px-2 py-0.5">
+                    CODE_REPOSITORY
+                  </span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+                <h4 className="text-2xl font-black italic uppercase tracking-tight mb-1">
+                  GITHUB
+                </h4>
+                <p className="text-xs font-mono font-bold text-zinc-500">
+                  github.com/satriyop
+                </p>
+              </div>
+              <div className="pt-4 border-t-2 border-black/20 flex items-center justify-between mt-6">
+                <span className="text-[10px] font-mono font-black uppercase group-hover:underline">VIEW_PROFILE</span>
+                <span className="text-xs font-black">→</span>
+              </div>
+            </a>
+
+            {/* Twitter / X Card */}
+            <a
+              href="https://twitter.com/satriyop"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-4 border-black p-6 bg-white tactile-card flex flex-col justify-between group cursor-pointer hud-corner"
+            >
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[10px] font-mono font-black uppercase tracking-wider bg-black text-white px-2 py-0.5">
+                    SOCIAL_FEED
+                  </span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+                <h4 className="text-2xl font-black italic uppercase tracking-tight mb-1">
+                  TWITTER / X
+                </h4>
+                <p className="text-xs font-mono font-bold text-zinc-500">
+                  @satriyop
+                </p>
+              </div>
+              <div className="pt-4 border-t-2 border-black/20 flex items-center justify-between mt-6">
+                <span className="text-[10px] font-mono font-black uppercase group-hover:underline">OPEN_PROFILE</span>
+                <span className="text-xs font-black">→</span>
+              </div>
+            </a>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t-2 border-black/20 text-[10px] font-mono font-bold text-zinc-500 gap-2 select-none">
+            <span>© {new Date().getFullYear()} SATRIYO PAMUNGKAS. ALL RIGHTS RESERVED.</span>
+            <span className="uppercase tracking-wider">PURE CODE // BRUTALIST ARCHITECTURE</span>
           </div>
         </footer>
       </div>
 
       {/* Static Footer Bar */}
       <HeartbeatTicker />
-
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-50"></div>
     </div>
   );
 };
