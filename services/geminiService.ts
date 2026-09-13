@@ -7,8 +7,8 @@ export const askOracle = async (question: string) => {
     });
     
     if (!response.ok) throw new Error('Oracle offline');
-    const data = await response.json();
-    return data.text;
+    const data = (await response.json()) as { text?: string };
+    return data.text || 'SYSTEM_ERROR: ORACLE_SILENT.';
   } catch (error) {
     console.error('Oracle Failure:', error);
     return 'SYSTEM_ERROR: ORACLE_OFFLINE. PLEASE TRY AGAIN.';

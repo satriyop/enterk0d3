@@ -7,13 +7,19 @@ const HeartbeatTicker: React.FC = () => {
   const [events, setEvents] = useState<GitHubEvent[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
     const updateEvents = async () => {
       const data = await fetchUserEvents('satriyop');
-      setEvents(data.slice(0, 10));
+      if (isMounted) {
+        setEvents(data.slice(0, 10));
+      }
     };
     updateEvents();
     const interval = setInterval(updateEvents, 60000); // Update every minute
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const formatEvent = (event: GitHubEvent) => {

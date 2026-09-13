@@ -1,12 +1,36 @@
-export const onRequestPost: PagesFunction<{ GEMINI_API_KEY: string }> = async (context) => {
+export const onRequestPost: PagesFunction<{ GEMINI_API_KEY?: string }> = async (context) => {
   const { request, env } = context;
-  
+
   if (!env.GEMINI_API_KEY) {
-    return new Response(JSON.stringify({ error: 'Gemini API Key missing' }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Gemini API Key configuration missing' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
-  const body: any = await request.json();
-  const { question } = body;
+  let question: string;
+  try {
+    const body = (await request.json()) as { question?: unknown };
+    if (!body || typeof body.question !== 'string') {
+      return new Response(JSON.stringify({ error: 'Invalid payload: question must be a string' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    question = body.question.trim();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Malformed JSON payload' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!question || question.length > 500) {
+    return new Response(JSON.stringify({ error: 'Question must be between 1 and 500 characters' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${env.GEMINI_API_KEY}`;
 
@@ -17,6 +41,7 @@ export const onRequestPost: PagesFunction<{ GEMINI_API_KEY: string }> = async (c
     },
     generationConfig: {
       temperature: 0.9,
+      maxOutputTokens: 256,
     }
   };
 
@@ -27,13 +52,25 @@ export const onRequestPost: PagesFunction<{ GEMINI_API_KEY: string }> = async (c
       body: JSON.stringify(payload),
     });
 
-    const data: any = await response.json();
+    if (!response.ok) {
+      return new Response(JSON.stringify({ error: 'Oracle unreachable', text: 'SYSTEM_ERROR: ORACLE_UNREACHABLE.' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const data = (await response.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'SYSTEM_ERROR: ORACLE_SILENT.';
 
     return new Response(JSON.stringify({ text }), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Oracle Failure' }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Oracle Failure', text: 'SYSTEM_ERROR: ORACLE_FAILURE.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };

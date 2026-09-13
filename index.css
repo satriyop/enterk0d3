@@ -6,4 +6,161 @@
 
 body {
   font-family: var(--font-jetbrains);
+  cursor: crosshair;
+  background-color: #ffffff;
+  color: #000000;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* Global Brutalist Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #ffffff;
+  border-left: 2px solid #000000;
+  border-top: 2px solid #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: #000000;
+  border: 2px solid #ffffff;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #27272a;
+}
+
+/* Brutal Shadows */
+.brutal-shadow {
+  box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 1);
+}
+
+.brutal-shadow-sm {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* ASCII Header */
+.ascii-art {
+  white-space: pre;
+  line-height: 1.05;
+  font-size: clamp(4px, 1vw, 8px);
+}
+
+/* Brutal Scrollbar Component Utility */
+.scrollbar-brutal::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scrollbar-brutal::-webkit-scrollbar-track {
+  background: #f4f4f5;
+  border: 2px solid #000000;
+}
+.scrollbar-brutal::-webkit-scrollbar-thumb {
+  background: #000000;
+}
+.scrollbar-brutal {
+  scrollbar-width: thin;
+  scrollbar-color: #000000 #f4f4f5;
+}
+
+/* Brutal Markdown Prose */
+.prose-brutal {
+  word-break: break-word;
+}
+.prose-brutal h1, .prose-brutal h2, .prose-brutal h3, .prose-brutal h4 {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.prose-brutal h1 { font-size: 1.5rem; }
+.prose-brutal h2 { font-size: 1.25rem; border-bottom: 2px solid #000; padding-bottom: 0.25rem; }
+.prose-brutal h3 { font-size: 1.1rem; }
+.prose-brutal p { margin-bottom: 0.75rem; line-height: 1.5; }
+.prose-brutal strong { font-weight: 800; text-decoration: underline; }
+.prose-brutal code {
+  background: #000000;
+  color: #ffffff;
+  padding: 1px 5px;
+  font-family: var(--font-jetbrains);
+  font-size: 0.85em;
+}
+.prose-brutal pre {
+  background: #000000;
+  color: #ffffff;
+  padding: 0.75rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+  border: 2px solid #000000;
+}
+.prose-brutal pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.prose-brutal a {
+  text-decoration: underline;
+  font-weight: bold;
+  color: inherit;
+}
+.prose-brutal a:hover {
+  background: #000000;
+  color: #ffffff;
+}
+.prose-brutal ul {
+  list-style-type: square;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.prose-brutal ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.prose-brutal li {
+  margin-bottom: 0.25rem;
+}
+.prose-brutal blockquote {
+  border-left: 4px solid #000000;
+  padding-left: 0.75rem;
+  font-style: italic;
+  margin: 0.75rem 0;
+}
+
+/* Modal and Element Animation Utilities */
+@keyframes brutalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes brutalZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-in {
+  animation-duration: 200ms;
+  animation-fill-mode: forwards;
+}
+
+.fade-in {
+  animation-name: brutalFadeIn;
+}
+
+.zoom-in-95 {
+  animation-name: brutalZoomIn;
+  animation-duration: 250ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }

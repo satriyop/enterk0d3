@@ -6,7 +6,7 @@ import ProjectGrid from './components/ProjectGrid';
 import CommandPalette from './components/CommandPalette';
 import HeartbeatTicker from './components/HeartbeatTicker';
 import { Project } from './types';
-import { fetchUserRepos, fetchLatestCommitHash, fetchRepoCommits } from './services/githubService';
+import { fetchUserRepos, fetchRepoCommits } from './services/githubService';
 
 const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(FALLBACK_PROJECTS);
@@ -14,62 +14,68 @@ const App: React.FC = () => {
   const [previewProject, setPreviewProject] = useState<Project | null>(null);
   const [isSyncing, setIsSyncing] = useState(true);
 
-  const syncGitHub = async () => {
-    setIsSyncing(true);
-    const repos = await fetchUserRepos('satriyop');
-    
-    if (repos && repos.length > 0) {
-      const mappedProjects: Project[] = repos
-        .filter((repo: any) => !repo.fork)
-        .slice(0, 5)
-        .map((repo: any) => ({
-          id: repo.id.toString(),
-          title: repo.name.toUpperCase(),
-          description: repo.description || "NO_DESCRIPTION_PROVIDED",
-          tags: repo.topics && repo.topics.length > 0 ? repo.topics : (repo.language ? [repo.language] : []),
-          repo: repo.html_url.replace('https://', ''),
-          commitHash: 'FETCHING...', 
-          previewUrl: `https://opengraph.githubassets.com/1/satriyop/${repo.name}`
-        }));
-      
-      setProjects(mappedProjects);
-      
-      // Pre-fetch data for the first few to make the UI snappy
-      if (mappedProjects.length > 0) {
-        const fetchInitialData = async (proj: Project) => {
-          const repoPath = proj.repo.replace('github.com/', '');
-          const [hash, history] = await Promise.all([
-            fetchLatestCommitHash(repoPath),
-            fetchRepoCommits(repoPath)
-          ]);
-          return { ...proj, commitHash: hash, history };
-        };
-
-        const firstProjectWithData = await fetchInitialData(mappedProjects[0]);
-        setActiveProject(firstProjectWithData);
-        setProjects(prev => prev.map(p => p.id === mappedProjects[0].id ? firstProjectWithData : p));
-
-        // Background fetch for the rest to enable instant hover Git Flow
-        mappedProjects.slice(1).forEach(async (p) => {
-          const data = await fetchInitialData(p);
-          setProjects(prev => prev.map(item => item.id === p.id ? data : item));
-        });
-      }
-    }
-    setIsSyncing(false);
-  };
-
   useEffect(() => {
+    let isMounted = true;
+
+    const syncGitHub = async () => {
+      setIsSyncing(true);
+      const repos = await fetchUserRepos('satriyop');
+      if (!isMounted) return;
+      
+      if (repos && repos.length > 0) {
+        const mappedProjects: Project[] = repos
+          .filter((repo: any) => !repo.fork)
+          .slice(0, 5)
+          .map((repo: any) => ({
+            id: repo.id.toString(),
+            title: repo.name.toUpperCase(),
+            description: repo.description || "NO_DESCRIPTION_PROVIDED",
+            tags: repo.topics && repo.topics.length > 0 ? repo.topics : (repo.language ? [repo.language] : []),
+            repo: repo.html_url.replace('https://', ''),
+            commitHash: 'FETCHING...', 
+            previewUrl: `https://opengraph.githubassets.com/1/satriyop/${repo.name}`
+          }));
+        
+        if (!isMounted) return;
+        setProjects(mappedProjects);
+        
+        if (mappedProjects.length > 0) {
+          const fetchInitialData = async (proj: Project) => {
+            const repoPath = proj.repo.replace('github.com/', '');
+            const history = await fetchRepoCommits(repoPath);
+            const hash = history[0]?.id || 'UNKNOWN';
+            return { ...proj, commitHash: hash, history };
+          };
+
+          const firstProjectWithData = await fetchInitialData(mappedProjects[0]);
+          if (!isMounted) return;
+          setActiveProject(firstProjectWithData);
+          setProjects(prev => prev.map(p => p.id === mappedProjects[0].id ? firstProjectWithData : p));
+
+          // Batch fetch the remaining projects without loop re-renders
+          const rest = await Promise.all(mappedProjects.slice(1).map(fetchInitialData));
+          if (!isMounted) return;
+          setProjects(prev => {
+            const map = new Map(rest.map(r => [r.id, r]));
+            return prev.map(p => map.get(p.id) || p);
+          });
+        }
+      }
+      if (isMounted) setIsSyncing(false);
+    };
+
     syncGitHub();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleProjectSelect = async (project: Project) => {
     if (!project.history || project.commitHash === 'FETCHING...') {
       const repoPath = project.repo.replace('github.com/', '');
-      const [hash, history] = await Promise.all([
-        fetchLatestCommitHash(repoPath),
-        fetchRepoCommits(repoPath)
-      ]);
+      const history = await fetchRepoCommits(repoPath);
+      const hash = history[0]?.id || 'UNKNOWN';
       const updatedProject = { ...project, commitHash: hash, history };
       setActiveProject(updatedProject);
       setProjects(prev => prev.map(p => p.id === project.id ? updatedProject : p));
@@ -253,9 +259,34 @@ const App: React.FC = () => {
           <div className="space-y-4">
             <h4 className="text-xl font-black underline italic">CONTACT_METHODS</h4>
             <ul className="space-y-1 font-mono text-sm font-bold">
-              <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://github.com/satriyop', '_blank')}>/github/satriyop</li>
-              <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.open('https://twitter.com/satriyop', '_blank')}>/twitter/satriyop</li>
-              <li className="hover:translate-x-2 transition-transform cursor-pointer" onClick={() => window.location.href = 'mailto:satriyo@enterk0d3.com'}>/email/satriyo@enterk0d3.com</li>
+              <li>
+                <a 
+                  href="https://github.com/satriyop" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-block hover:translate-x-2 transition-transform"
+                >
+                  /github/satriyop
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="https://twitter.com/satriyop" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-block hover:translate-x-2 transition-transform"
+                >
+                  /twitter/satriyop
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="mailto:satriyo@enterk0d3.com" 
+                  className="inline-block hover:translate-x-2 transition-transform"
+                >
+                  /email/satriyo@enterk0d3.com
+                </a>
+              </li>
             </ul>
           </div>
           <div className="space-y-4">

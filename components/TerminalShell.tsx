@@ -123,7 +123,7 @@ const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject, allProject
       default:
         setHistory(prev => [...prev, { type: 'error', content: `COMMAND NOT FOUND: ${cmd}` }]);
     }
-  }, [history, activeProject, allProjects, currentPath]);
+  }, [activeProject, allProjects, currentPath]);
 
   useEffect(() => {
     const handleExternalCmd = (e: any) => {
@@ -192,26 +192,22 @@ const TerminalShell: React.FC<TerminalShellProps> = ({ activeProject, allProject
         
       </div>
 
-      <form onSubmit={handleFormSubmit} className="flex gap-2 border-t border-white/20 pt-4 relative">
-        <span className="text-green-400 font-bold">$</span>
-        <div className="flex-1 relative font-mono text-sm flex items-center">
-          <span className="whitespace-pre">{input}</span>
-          <span className="w-2.5 h-4 bg-white ml-0.5 animate-cursor-blink"></span>
-          <input 
-            ref={inputRef}
-            type="text" 
-            value={input} 
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="absolute inset-0 w-full bg-transparent border-none outline-none text-transparent caret-transparent font-mono text-sm"
-            autoFocus
-          />
-        </div>
+      <form onSubmit={handleFormSubmit} className="flex gap-2 border-t border-white/20 pt-4 relative items-center">
+        <span className="text-green-400 font-bold select-none">$</span>
+        <input 
+          ref={inputRef}
+          type="text" 
+          value={input} 
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-1 bg-transparent border-none outline-none text-white caret-green-400 font-mono text-sm focus:ring-0"
+          autoFocus
+          spellCheck={false}
+          autoComplete="off"
+        />
       </form>
 
       <style>{`
-        @keyframes cursor-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        .animate-cursor-blink { animation: cursor-blink 0.8s step-end infinite; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>

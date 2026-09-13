@@ -1,6 +1,7 @@
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import { Project } from '../types';
 
 interface ProjectGridProps {
@@ -8,6 +9,13 @@ interface ProjectGridProps {
   onProjectSelect?: (project: Project) => void;
   onProjectHover?: (project: Project | null) => void;
 }
+
+const renderMarkdown = (content: string): string => {
+  const rawHtml = marked.parse(content) as string;
+  return DOMPurify.sanitize(rawHtml, {
+    ADD_ATTR: ['target', 'rel'],
+  });
+};
 
 const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, onProjectHover }) => {
   const [hoveredProject, setHoveredProject] = useState<Project | null>(null);
@@ -35,49 +43,70 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, on
     if (onProjectSelect) onProjectSelect(project);
   };
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setSelectedProject(null);
     setReadmeContent(null);
-  };
+  }, []);
+
+  // Keyboard accessibility (Escape to close) and body scroll lock
+  useEffect(() => {
+    if (!selectedProject) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal();
+    };
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedProject, closeModal]);
 
   useEffect(() => {
-    if (selectedProject) {
-      const fetchReadme = async () => {
-        setIsLoadingReadme(true);
-        setReadmeContent(null);
-        try {
-          const path = selectedProject.repo.replace('github.com/', '');
-          const url = `https://raw.githubusercontent.com/${path}/main/README.md`;
-          
-          const response = await fetch(url);
-          if (response.ok) {
-            const text = await response.text();
-            setReadmeContent(text);
-          } else {
-            const fallbackUrl = `https://raw.githubusercontent.com/${path}/master/README.md`;
-            const fallbackResponse = await fetch(fallbackUrl);
-            if (fallbackResponse.ok) {
-              const text = await fallbackResponse.text();
-              setReadmeContent(text);
-            } else {
-              setReadmeContent("## ERROR: README_NOT_FOUND\nUnable to stream remote documentation for this node.");
-            }
-          }
-        } catch (err) {
-          setReadmeContent("## SYSTEM_FAILURE\nNetwork timeout while attempting to fetch repository documentation.");
-        } finally {
-          setIsLoadingReadme(false);
+    if (!selectedProject) return;
+
+    const abortController = new AbortController();
+    const fetchReadme = async () => {
+      setIsLoadingReadme(true);
+      setReadmeContent(null);
+      try {
+        const path = selectedProject.repo.replace('github.com/', '');
+        const url = `https://raw.githubusercontent.com/${path}/main/README.md`;
+        
+        let response = await fetch(url, { signal: abortController.signal });
+        if (!response.ok) {
+          const fallbackUrl = `https://raw.githubusercontent.com/${path}/master/README.md`;
+          response = await fetch(fallbackUrl, { signal: abortController.signal });
         }
-      };
-      fetchReadme();
-    }
+
+        if (response.ok) {
+          const text = await response.text();
+          setReadmeContent(text);
+        } else {
+          setReadmeContent("## ERROR: README_NOT_FOUND\nUnable to stream remote documentation for this node.");
+        }
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') {
+          setReadmeContent("## SYSTEM_FAILURE\nNetwork timeout while attempting to fetch repository documentation.");
+        }
+      } finally {
+        setIsLoadingReadme(false);
+      }
+    };
+
+    fetchReadme();
+    return () => abortController.abort();
   }, [selectedProject]);
 
   return (
     <div className="space-y-6 relative" onMouseMove={handleMouseMove}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {projects.map((project) => {
-          const htmlDescription = marked.parse(project.description) as string;
+          const htmlDescription = renderMarkdown(project.description);
 
           return (
             <div 
@@ -179,7 +208,7 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, on
               <div className="flex-1 space-y-12">
                 <div 
                   className="text-xl font-mono prose-brutal leading-tight italic"
-                  dangerouslySetInnerHTML={{ __html: marked.parse(selectedProject.description) }}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedProject.description) }}
                 />
 
                 <div className="border-4 border-black bg-zinc-50 p-6 space-y-4">
@@ -193,7 +222,7 @@ const ProjectGrid: React.FC<ProjectGridProps> = ({ projects, onProjectSelect, on
                         <div className="h-4 bg-zinc-100 w-5/6"></div>
                       </div>
                     ) : (
-                      <div className="prose-brutal" dangerouslySetInnerHTML={{ __html: marked.parse(readmeContent || 'NO_DOCS') }} />
+                      <div className="prose-brutal" dangerouslySetInnerHTML={{ __html: renderMarkdown(readmeContent || 'NO_DOCS') }} />
                     )}
                   </div>
                 </div>

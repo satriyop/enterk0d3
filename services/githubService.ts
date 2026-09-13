@@ -6,7 +6,7 @@ export const fetchUserEvents = async (username: string): Promise<GitHubEvent[]> 
   try {
     const response = await fetch(`${BASE_URL}/users/${username}/events/public`);
     if (!response.ok) throw new Error('Failed to fetch events');
-    return await response.json();
+    return (await response.json()) as GitHubEvent[];
   } catch (error) {
     console.error('GitHub API Error:', error);
     return [];
@@ -17,7 +17,7 @@ export const fetchUserRepos = async (username: string): Promise<any[]> => {
   try {
     const response = await fetch(`${BASE_URL}/users/${username}/repos?sort=updated&per_page=100`);
     if (!response.ok) throw new Error('Failed to fetch repos');
-    return await response.json();
+    return (await response.json()) as any[];
   } catch (error) {
     console.error('GitHub API Error:', error);
     return [];
@@ -28,7 +28,7 @@ export const fetchRepoContents = async (repoPath: string, path: string = ''): Pr
   try {
     const response = await fetch(`${BASE_URL}/repos/${repoPath}/contents/${path}`);
     if (!response.ok) throw new Error('Failed to fetch contents');
-    return await response.json();
+    return (await response.json()) as GitHubContent[];
   } catch (error) {
     console.error('GitHub API Error:', error);
     return [];
@@ -50,7 +50,7 @@ export const fetchLatestCommitHash = async (repoPath: string): Promise<string> =
   try {
     const response = await fetch(`${BASE_URL}/repos/${repoPath}/commits?per_page=1`);
     if (!response.ok) throw new Error('Failed to fetch commit hash');
-    const data = await response.json();
+    const data = (await response.json()) as any[];
     return data[0]?.sha?.substring(0, 7) || 'UNKNOWN';
   } catch (error) {
     return 'N/A';
@@ -61,7 +61,7 @@ export const fetchRepoCommits = async (repoPath: string): Promise<HistoryNode[]>
   try {
     const response = await fetch(`${BASE_URL}/repos/${repoPath}/commits?per_page=10`);
     if (!response.ok) throw new Error('Failed to fetch commits');
-    const data = await response.json();
+    const data = (await response.json()) as any[];
     return data.map((item: any) => {
       const message = item.commit.message;
       const isMerge = message.toLowerCase().startsWith('merge');
