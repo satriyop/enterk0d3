@@ -8,27 +8,48 @@ export const onRequestPost: PagesFunction<{ GEMINI_API_KEY?: string }> = async (
     });
   }
 
+  // Guard edge worker against oversized payloads
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > 10240) {
+    return new Response(JSON.stringify({ error: 'Payload too large: maximum 10KB' }), {
+      status: 413,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
+
   let question: string;
   try {
     const body = (await request.json()) as { question?: unknown };
     if (!body || typeof body.question !== 'string') {
       return new Response(JSON.stringify({ error: 'Invalid payload: question must be a string' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+        },
       });
     }
     question = body.question.trim();
   } catch {
     return new Response(JSON.stringify({ error: 'Malformed JSON payload' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      },
     });
   }
 
   if (!question || question.length > 500) {
     return new Response(JSON.stringify({ error: 'Question must be between 1 and 500 characters' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      },
     });
   }
 
@@ -55,7 +76,10 @@ export const onRequestPost: PagesFunction<{ GEMINI_API_KEY?: string }> = async (
     if (!response.ok) {
       return new Response(JSON.stringify({ error: 'Oracle unreachable', text: 'SYSTEM_ERROR: ORACLE_UNREACHABLE.' }), {
         status: 502,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+        },
       });
     }
 
@@ -65,12 +89,18 @@ export const onRequestPost: PagesFunction<{ GEMINI_API_KEY?: string }> = async (
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'SYSTEM_ERROR: ORACLE_SILENT.';
 
     return new Response(JSON.stringify({ text }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      },
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: 'Oracle Failure', text: 'SYSTEM_ERROR: ORACLE_FAILURE.' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+      },
     });
   }
 };

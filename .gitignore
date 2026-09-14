@@ -23,6 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-.dev.vars
+# Environment & secrets
+.env*
+!.env.example
+.dev.vars*
 .wrangler
-.env
